@@ -1,5 +1,12 @@
-# If you want to use another base-preset, change the reference path here.
+# If you want to use another content-shader preset, change the reference path here.
+# Uncomment JUST ONE reference shader otherwise Retroarch will fail to load the shader!
 
+# CRT Shaders
 #reference "base_presets/ambient-light/ambient-light-crt-nobody.slangp"
 //#reference "base_presets/ambient-light/ambient-light-crt-geom.slangp"
+//#reference "base_presets/ambient-light/ambient-light-crt-aperture.slangp"
+//#reference "base_presets/ambient-light/ambient-light-crt-easymode.slangp"
+//#reference "base_presets/ambient-light/ambient-light-crt-gdv-mini.slangp"
+//#reference "base_presets/ambient-light/ambient-light-crt-guest-advanced.slangp"
+//#reference "base_presets/ambient-light/ambient-light-crt-lottes.slangp"
 
