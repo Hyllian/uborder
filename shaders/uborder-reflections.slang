@@ -126,7 +126,12 @@ void main()
 
     border_uv = MIDDLE + (border_uv.xy - MIDDLE - border_pos) / params.border_scale;
 
-    vTexCoord = TexCoord.xy - vec2(bezel_center_x, bezel_center_y);
+    if (global.Rotation==3.0) {
+        vTexCoord = TexCoord.xy + vec2(bezel_center_x, bezel_center_y);
+    } else {
+        vTexCoord = TexCoord.xy - vec2(bezel_center_x, bezel_center_y);
+    }
+
     reflex_uv.xy = 2.0*vTexCoord  - 1.0.xx; // --> (-1.0, 1.0)
 
     frame_size    = vec2(frame_w, frame_h);
