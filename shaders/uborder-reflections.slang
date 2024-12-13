@@ -54,22 +54,24 @@ layout(std140, set = 0, binding = 0) uniform UBO
     float ref_outer_warp;
     float inner_corner_radius;
     float outer_corner_radius;
+    float border_luma_trans;
 } global;
 
-#pragma parameter border_nonono       "BORDER:"                           0.0  0.0 1.0 1.0
-#pragma parameter ub_border_top       "    On top: [ Frame | Border ]"    0.0  0.0 1.0 1.0
-#pragma parameter border_alpha_cutoff "    Border On Top - Alpha"         0.38  0.0 1.0 0.01
-#pragma parameter border_scale        "    Border Scale"                  1.0  0.5 5.0 0.002
-#pragma parameter border_center_x     "    Border Center X"               0.0 -0.5 0.5 0.001
-#pragma parameter border_center_y     "    Border Center Y"               0.0 -0.5 0.5 0.001
-#pragma parameter border_mirror_y     "    Border Mirror (Y)"             0.0  0.0 1.0 1.0
+#pragma parameter border_nonono       "BORDER:"                            0.0  0.0 1.0 1.0
+#pragma parameter ub_border_top       "    On top: [ Frame | Border ]"     0.0  0.0 1.0 1.0
+#pragma parameter border_alpha_cutoff "    Frame 'On Top' Transparency"    0.38  0.0 1.0 0.01
+#pragma parameter border_luma_trans   "        Luma Transp. [ Off | On ]" 1.0  0.0 1.0 1.0
+#pragma parameter border_scale        "    Border Scale"                   1.0  0.5 5.0 0.002
+#pragma parameter border_center_x     "    Border Center X"                0.0 -0.5 0.5 0.001
+#pragma parameter border_center_y     "    Border Center Y"                0.0 -0.5 0.5 0.001
+#pragma parameter border_mirror_y     "    Border Mirror (Y)"              0.0  0.0 1.0 1.0
 
 #pragma parameter RF_NONONO              "REFLECTIONS:"                    0.0  0.0 1.0 1.0
 #pragma parameter AdjustView             "    Reflection Adjust View"      0.0  0.0 1.0 1.0
 #pragma parameter reflection_strength    "    Reflection Strengh"          0.25 0.0 1.0 0.01
 #pragma parameter ref_outer_warp         "    Disable Outer Curvature"     0.0  0.0 1.0 1.0
-#pragma parameter ref_warp_x                 "    Reflection Warp X"       0.0  0.0 1.0 0.01
-#pragma parameter ref_warp_y                 "    Reflection Warp Y"       0.0  0.0 1.0 0.01
+#pragma parameter ref_warp_x             "    Reflection Warp X"           0.0  0.0 1.0 0.01
+#pragma parameter ref_warp_y             "    Reflection Warp Y"           0.0  0.0 1.0 0.01
 #pragma parameter frame_w                "    Reflection Width"            0.67 0.0 1.0 0.001
 #pragma parameter frame_h                "    Reflection Height"           0.87 0.0 1.0 0.001
 #pragma parameter bezel_w                "    Reflection Thickness X"      0.02 0.0 1.0 0.001
@@ -85,13 +87,14 @@ layout(std140, set = 0, binding = 0) uniform UBO
 #define bezel_h     params.bezel_h
 #define frame_w     params.frame_w
 #define frame_h     params.frame_h
-#define bezel_center_x     params.bezel_center_x
-#define bezel_center_y     params.bezel_center_y
+#define bezel_center_x          params.bezel_center_x
+#define bezel_center_y          params.bezel_center_y
 #define inner_corner_radius     global.inner_corner_radius
 #define outer_corner_radius     global.outer_corner_radius
-#define border_mirror_y     params.border_mirror_y
-#define border_alpha_cutoff     params.border_alpha_cutoff
-#define reflection_strength     params.reflection_strength
+#define border_mirror_y               params.border_mirror_y
+#define border_alpha_cutoff           params.border_alpha_cutoff
+#define border_luma_trans             global.border_luma_trans
+#define reflection_strength           params.reflection_strength
 #define reflection_scr_distance_x     params.reflection_scr_distance_x
 #define reflection_scr_distance_y     params.reflection_scr_distance_y
 
@@ -103,6 +106,8 @@ layout(std140, set = 0, binding = 0) uniform UBO
 #define WARP vec2(global.ref_warp_x,global.ref_warp_y)
 
 vec2 ref_aspect = vec2(1.0, params.OutputSize.y/params.OutputSize.x);
+
+const vec3 Y = vec3(.2126, .7152, .0722);
 
 #pragma stage vertex
 layout(location = 0) in vec4 Position;
@@ -231,16 +236,16 @@ void main()
 
     ref_coords = 0.5 * ref_coords + vec2(0.5); // --> (0.0, 1.0)
 
-    vec4 blurred_frame = texture(BlurPass, ref_coords); // alpha is luma mipmapped.
-
-    vec3 reflex = bezel_area * mix(blurred_frame.rgb, vec3(0.0, 1.0, 0.0), params.AdjustView);
+    vec3 reflex = bezel_area * mix(texture(BlurPass, ref_coords).rgb, vec3(0.0, 1.0, 0.0), params.AdjustView);
 
 //    reflex.rgb = mix(reflex.rgb, frame.rgb, frame.a); // Still needs tests, dunno if it's useless...
 
     border.rgb = clamp(border.rgb + reflection_strength * reflex.rgb, 0.0, 1.0);
 
-    float border_alpha = clamp(border_alpha_cutoff - blurred_frame.a, 0.0, border_alpha_cutoff);
+    float border_alpha = mix(border_alpha_cutoff, clamp(border_alpha_cutoff - dot(frame.rgb, Y), 0.0, border_alpha_cutoff), border_luma_trans);
 
-    FragColor = mix(mix(frame, border, border.a), frame, (1.0 - border_alpha*params.ub_border_top) * frame.a);
+//    FragColor = mix(mix(frame, border, border.a), frame, (1.0 - params.ub_border_top) * (1.0-border_alpha*border.a)* frame.a);
+    FragColor = mix(mix(border, frame, frame.a*(1.0-border_alpha)), mix(frame, border, border.a), params.ub_border_top);
+
 }
 

@@ -2,7 +2,7 @@
 
 *How to install and use:*
 
-  - Update your Retroarch shaders online to get a vanilla version of uborder inside 'shaders_slang/bezel/';
+  - Install uborder inside 'shaders_slang/bezel/' on your Retroarch' shaders folder;
   - On Retroarch, choose 'FULL' aspect ratio;
   - Choose your preset and enjoy.
 
