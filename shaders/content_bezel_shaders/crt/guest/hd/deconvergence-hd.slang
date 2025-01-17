@@ -1165,13 +1165,12 @@ else{
 
     if (bz_lights == 1.0)
     {
-
-	// Bezel texture 
-    	vec3 bz_color = clamp(BZ_COLOR + rand(uvIB)*0.0125-0.00625, 0.0, 1.0) + 
+        // Bezel texture 
+        vec3 bz_color = clamp(BZ_COLOR + rand(uvIB)*0.0125-0.00625, 0.0, 1.0) + 
                                          rand(uvIB+1.0.xx)*0.0625 * cos(0.75*PI*uvIB.x);
-
         // Inner Bezel and Reflections
-        bezels += bz_color * bezel_inner_area * (Blur + 0.25*(1.0 + corner));
+//        bezels += bz_color * bezel_inner_area * (Blur + 0.25*(1.0 + corner));
+        bezels += (bz_color + Blur) * bezel_inner_area * (0.25*(1.0 + corner));
 
     	// Outer Bezel
    	bezels += bz_color * bezel_outer_area;
@@ -1183,7 +1182,8 @@ else{
                                 RoundedRect(uvOB, MID_BZ, bz_r, vec2(SMTH*2.0, -SMTH* 2.0));
 
         // Inner Bezel and Reflections
-        bezels += BZ_COLOR * bezel_inner_area * (ambient_out * (0.7 + 0.35*(1.0 - corner)) + Blur);
+      //  bezels += BZ_COLOR * bezel_inner_area * (ambient_out * (0.7 + 0.35*(1.0 - corner)) + Blur);
+        bezels += (BZ_COLOR + Blur) * bezel_inner_area * (ambient_out * (0.7 + 0.35*(1.0 - corner)) + Blur);
 
         // Outer Bezel
         bezels += BZ_COLOR * bezel_outer_area * ambient_out;
