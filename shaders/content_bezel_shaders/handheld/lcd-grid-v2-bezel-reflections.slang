@@ -34,6 +34,10 @@ layout(std140, set = 0, binding = 0) uniform UBO
     float fr_scale_y;
     float fr_center_x;
     float fr_center_y;
+    float fr_i_scaling;
+    float fr_i_scaling_fac;
+    float fr_i_aspect_x;
+    float fr_i_aspect_y;
 
     float h_shape;
     float h_radius;
@@ -78,7 +82,14 @@ layout(std140, set = 0, binding = 0) uniform UBO
 
 } global;
 
+#define USE_BEZEL_REFLECTIONS_COMMON
+
 #include "../include/uborder_bezel_reflections_params.inc"
+
+#define ub_OutputSize   global.OutputSize
+#define ub_OriginalSize   global.OriginalSize
+
+#include "../include/uborder_bezel_reflections_common.inc"
 
 #pragma parameter lcd_grid_nonono       "LCD-GRID-V2:"                           0.0  0.0 1.0 1.0
 #pragma parameter RSUBPIX_R  "Colour of R subpixel: R" 1.0 0.0 1.0 0.01
@@ -95,53 +106,6 @@ layout(std140, set = 0, binding = 0) uniform UBO
 #pragma parameter blacklevel "Black level"            0.05 0.0 0.5 0.01
 #pragma parameter ambient    "Ambient"                 0.0 0.0 0.5 0.01
 #pragma parameter BGR        "BGR"                     0 0 1 1
-
-// Macros.
-#define FIX(c) max(abs(c), 1e-5);
-#define PI 3.141592653589
-
-float shine_size = (1.0 - global.bz_shine_size  );
-float amb_size   = (1.0 - global.bz_ambient_size);
-
-vec2  fr_center  = vec2(global.fr_center_x, global.fr_center_y)/100.0;
-float all_zoom   = global.all_zoom/100.0;
-vec2  fr_scale   = vec2(global.fr_scale_x, global.fr_scale_y)*global.fr_zoom*all_zoom/10000.0;
-
-vec2  overscan   = vec2(global.h_overscan_x, global.h_overscan_y)/100.0;
-vec2  SIZE       = vec2(bz_width, bz_height);
-vec2  size_over  = overscan * SIZE;
-
-float r2           = global.h_radius * global.h_radius;
-vec2  max_size     = vec2(sqrt( (r2 - 2.0) / (r2 - 1.0) ), 1.0);
-vec2  aspect       = vec2(1.0, global.OutputSize.y/global.OutputSize.x);
-vec2  aspect_adj   = vec2(aspect.x, aspect.y*global.fr_scale_y/global.fr_scale_x);
-float cornersize   = global.h_cornersize * min(aspect.x, aspect.y);
-float cornersmooth = global.h_cornersmooth/100.0;
-
-const vec2  middle         = 0.5.xx;
-const vec2  shine_position = vec2(0.0, 1.0);
-const float SMTH           = 0.004;
-const vec2  bz_shadow      = vec2(0.0, -0.06);
-
-vec3 BZ_COLOR = vec3(global.bz_red, global.bz_green, global.bz_blue)/255.0;
-
-vec2 INN_BZ = vec2(global.bz_inner_bezel_x, global.bz_inner_bezel_y) + vec2(bz_width, bz_height);
-vec2 MID_BZ = vec2(global.bz_middle_bezel_x, global.bz_middle_bezel_y) + INN_BZ;
-vec2 OUT_BZ = vec2(global.bz_outer_bezel_x, global.bz_outer_bezel_y) + MID_BZ;
-
-float cyl_shape = (1.0-global.bz_outer_curve)*global.h_shape*global.h_curvature;
-
-float mb_aspect = global.bz_middle_bezel_y/global.bz_middle_bezel_x;
-
-#define R_BLUR_ITER 5
-#define R_BLUR_SIZE 0.02
-
-#define border_pos vec2(global.border_center_x,global.border_center_y)
-
-float rand(vec2 co){
-    return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
-}
-
 
 #define outgamma 2.2
 
@@ -208,73 +172,6 @@ float intsmear(float x, float dx, float d, float coeffs[7])
     return d * ( intsmear_func(zh,coeffs) - intsmear_func(zl,coeffs) )/dx;
 }
 
-// Fast when two first params are constants.
-float fsmoothstep(float a, float b, float x) {
-    return clamp(x*(1.0/(b - a)) - (a/(b - a)), 0.0, 1.0);
-//    return smoothstep(a, b, x);
-}
-
-vec2 fsmoothstep(vec2 a, vec2 b, vec2 x) {
-    return clamp(x*(1.0/(b - a)) - (a/(b - a)), 0.0, 1.0);
-//    return smoothstep(a, b, x);
-}
-
-float h_corner(vec2 uv)
-{
-    vec2  d          = abs((2.0*uv - 1.0) * aspect_adj*SIZE) - (aspect_adj*SIZE - cornersize.xx);
-    float borderline = length(max(d, 0.0.xx)) + min(max(d.x, d.y), 0.0) - cornersize;
-
-    return fsmoothstep(cornersmooth, -cornersmooth, borderline);
-}
-
-vec2 h_warp(vec2 uv)
-{
-    vec2 cylinder = sqrt( (r2 - uv.x*uv.x) / (r2 - 2.0*uv.x*uv.x) )*max_size;
-    vec2 sphere   = sqrt( (r2 - 1.0      ) / (r2 - dot(uv, uv))   ).xx;
-
-    uv *= mix(sphere, cylinder, global.h_shape);
-
-    return uv;
-}
-
-// uv must be in the interval (-1.0, 1.0)
-float RoundedRect(vec2 uv, vec2 size, float radius, vec2 blur)
-{
-    radius = radius * min(size.x, size.y);
-    vec2 d = (abs(uv) - (size-radius.xx));
-    float shape = length(max(d, 0.0.xx)) + min(max(d.x, d.y),  0.0) - radius;
-
-    return fsmoothstep(-blur.x, blur.y, shape);
-}
-
-// uv must be in the interval (-1.0, 1.0)
-vec2 RoundedRectVec(vec4 uv, vec4 size, vec2 radius, vec2 blur)
-{
-    radius = radius * min(size.xz, size.yw);
-    vec4 d = (abs(uv) - (size-radius.xxyy));
-    vec4 d4 = max(d, 0.0.xxxx);
-
-    vec2 shape = vec2(length(d4.xy), length(d4.zw)) + min(max(d.xz, d.yw),  0.0.xx) - radius;
-
-    return fsmoothstep(-blur, blur, shape);
-}
-
-
-// Calculate distance to get reflection coords
-vec2 ReflectionCoords(vec2 uv, float r)
-{
-    vec2 ref_coord;
-    vec2 size = (1.0-r).xx;
-
-    vec2 maxs = uv - max(0.0.xx, 2.0*(uv - size));
-    vec2 mins = uv - min(0.0.xx, 2.0*(uv + size));
-
-    ref_coord.x = (uv.x >= 0.0) ? maxs.x : mins.x;
-    ref_coord.y = (uv.y >= 0.0) ? maxs.y : mins.y;
-
-    return 0.5*ref_coord + 0.5;
-}
-
 
 void main()
 {
@@ -285,7 +182,7 @@ void main()
     vec2 uvMB = mix(uv, uvFC, global.bz_outer_curve);    // In Between bezel area
     vec2 uvOB = uvMB;                                    // Outer bezel area
 
-    uvFC = uvFC/size_over - 2.0*vec2(global.h_angle_x, global.h_angle_y);
+    uvFC = uvFC*overscan - 2.0*vec2(global.h_angle_x, global.h_angle_y);
 
     vec2 area_out = RoundedRectVec(vec4(uvMB, uvOB), vec4(MID_BZ, OUT_BZ), bz_r.xx, vec2(SMTH, -SMTH));
 

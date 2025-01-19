@@ -1,0 +1,124 @@
+vec2  fr_center  = vec2(global.fr_center_x, global.fr_center_y)/100.0;
+float all_zoom   = global.all_zoom/100.0;
+vec2  float_scale   = vec2(global.fr_scale_x, global.fr_scale_y)*global.fr_zoom*all_zoom/10000.0;
+
+float int_scale_factor = floor(ub_OutputSize.y * ub_OriginalSize.w) + global.fr_i_scaling_fac;
+vec2  final_scale      = ub_OutputSize.xy * ub_OriginalSize.w
+                         * vec2(global.fr_i_aspect_y / global.fr_i_aspect_x, 1.0) / int_scale_factor;
+
+vec2 fr_scale = mix(float_scale, 1.0/final_scale, global.fr_i_scaling);
+
+vec2  content_size = mix(vec2(bz_width, bz_height), 1.0.xx, global.fr_i_scaling);
+vec2  overscan     = 100.0/(content_size*vec2(global.h_overscan_x, global.h_overscan_y));
+
+float r2           = global.h_radius * global.h_radius;
+vec2  max_size     = vec2(sqrt( (r2 - 2.0) / (r2 - 1.0) ), 1.0);
+vec2  sph_factor   = r2 - fr_scale*content_size;
+vec2  aspect       = vec2(1.0, ub_OutputSize.y/ub_OutputSize.x);
+vec2  aspect_adj   = content_size*vec2(aspect.x, aspect.y*global.fr_scale_y/global.fr_scale_x);
+float cornersize   = global.h_cornersize * min(aspect.x, aspect.y);
+float cornersmooth = global.h_cornersmooth/100.0;
+
+const vec2  middle         = 0.5.xx;
+
+// Fast when two first params are constants.
+float fsmoothstep(float a, float b, float x) {
+    return clamp(x*(1.0/(b - a)) - (a/(b - a)), 0.0, 1.0);
+//    return smoothstep(a, b, x);
+}
+
+vec2 fsmoothstep(vec2 a, vec2 b, vec2 x) {
+    return clamp(x*(1.0/(b - a)) - (a/(b - a)), 0.0, 1.0);
+//    return smoothstep(a, b, x);
+}
+
+float h_corner(vec2 uv)
+{
+    vec2  d          = abs((2.0*uv - 1.0) * aspect_adj) - (aspect_adj - cornersize.xx);
+    float borderline = length(max(d, 0.0.xx)) + min(max(d.x, d.y), 0.0) - cornersize;
+
+    return fsmoothstep(cornersmooth, -cornersmooth, borderline);
+}
+
+vec2 h_warp(vec2 uv)
+{
+    vec2 cylinder = sqrt( (r2 - uv.x*uv.x) / (r2 - 2.0*uv.x*uv.x) )*max_size;
+    vec2 sphere   =  sqrt( (sph_factor) / ( r2 - dot(uv, uv) ) );
+
+    uv *= mix(sphere, cylinder, global.h_shape);
+
+    return uv;
+}
+
+#ifdef USE_BEZEL_REFLECTIONS_COMMON
+
+#define FIX(c) max(abs(c), 1e-5);
+#define PI 3.141592653589
+
+#define R_BLUR_ITER 5
+#define R_BLUR_SIZE 0.02
+
+float shine_size = (1.0 - global.bz_shine_size  );
+float amb_size   = (1.0 - global.bz_ambient_size);
+
+const vec2  shine_position = vec2(0.0, 1.0);
+const float SMTH           = 0.004;
+const vec2  bz_shadow      = vec2(0.0, -0.06);
+
+vec3 BZ_COLOR = vec3(global.bz_red, global.bz_green, global.bz_blue)/255.0;
+
+vec2 INN_BZ = vec2(global.bz_inner_bezel_x, global.bz_inner_bezel_y) + content_size;
+vec2 MID_BZ = vec2(global.bz_middle_bezel_x, global.bz_middle_bezel_y) + INN_BZ;
+vec2 OUT_BZ = vec2(global.bz_outer_bezel_x, global.bz_outer_bezel_y) + MID_BZ;
+
+float cyl_shape = (1.0-global.bz_outer_curve)*global.h_shape*global.h_curvature;
+
+float mb_aspect = global.bz_middle_bezel_y/global.bz_middle_bezel_x;
+
+vec2  border_pos = vec2(global.border_center_x,global.border_center_y);
+
+
+float rand(vec2 co){
+    return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
+}
+
+
+// uv must be in the interval (-1.0, 1.0)
+float RoundedRect(vec2 uv, vec2 size, float radius, vec2 blur)
+{
+    radius = radius * min(size.x, size.y);
+    vec2 d = (abs(uv) - (size-radius.xx));
+    float shape = length(max(d, 0.0.xx)) + min(max(d.x, d.y),  0.0) - radius;
+
+    return fsmoothstep(-blur.x, blur.y, shape);
+}
+
+// uv must be in the interval (-1.0, 1.0)
+vec2 RoundedRectVec(vec4 uv, vec4 size, vec2 radius, vec2 blur)
+{
+    radius = radius * min(size.xz, size.yw);
+    vec4 d = (abs(uv) - (size-radius.xxyy));
+    vec4 d4 = max(d, 0.0.xxxx);
+
+    vec2 shape = vec2(length(d4.xy), length(d4.zw)) + min(max(d.xz, d.yw),  0.0.xx) - radius;
+
+    return fsmoothstep(-blur, blur, shape);
+}
+
+
+// Calculate distance to get reflection coords
+vec2 ReflectionCoords(vec2 uv, float r)
+{
+    vec2 ref_coord;
+    vec2 size = (1.0-r).xx;
+
+    vec2 maxs = uv - max(0.0.xx, 2.0*(uv - size));
+    vec2 mins = uv - min(0.0.xx, 2.0*(uv + size));
+
+    ref_coord.x = (uv.x >= 0.0) ? maxs.x : mins.x;
+    ref_coord.y = (uv.y >= 0.0) ? maxs.y : mins.y;
+
+    return 0.5*ref_coord + 0.5;
+}
+
+#endif

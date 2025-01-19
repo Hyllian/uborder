@@ -61,6 +61,10 @@ layout(std140, set = 0, binding = 0) uniform UBO
     float fr_scale_y;
     float fr_center_x;
     float fr_center_y;
+    float fr_i_scaling;
+    float fr_i_scaling_fac;
+    float fr_i_aspect_x;
+    float fr_i_aspect_y;
 
     float h_shape;
     float h_radius;
@@ -77,29 +81,13 @@ layout(std140, set = 0, binding = 0) uniform UBO
 } global;
 
 
-#pragma parameter all_nonono           "ALL:"                             0.0    0.0   1.0 1.0
-#pragma parameter all_zoom             "    Zoom %"                     100.0   20.0 200.0 1.0
+#include "../../../include/uborder_bezel_reflections_params.inc"
 
-#pragma parameter frame_nonono         "FRAME:"                           0.0    0.0   1.0 1.0
-#pragma parameter fr_zoom              "    Zoom %"                     100.0   20.0 200.0 1.0
-#pragma parameter fr_scale_x           "    Scale X%"                    75.0   20.0 200.0 0.2
-#pragma parameter fr_scale_y           "    Scale Y%"                   100.0   20.0 200.0 0.2
-#pragma parameter fr_center_x          "    Center X"                     0.0 -100.0 100.0 0.1
-#pragma parameter fr_center_y          "    Center Y"                     0.0 -100.0 100.0 0.1
+#define ub_OutputSize     global.OutputSize
+#define ub_OriginalSize   global.OriginalSize
 
-#pragma parameter h_nonono             "HYLLIAN'S CURVATURE:"             1.0  0.0   1.0 1.0
-#pragma parameter h_curvature          "    Curvature Toggle"             1.0  0.0   1.0 1.0
-#pragma parameter h_shape              "    Shape [ Sphere | Cylinder ]"  0.0  0.0   1.0 1.0
-#pragma parameter h_radius             "    Curvature Radius"             4.0  1.5  10.0 0.1
-#pragma parameter h_cornersize         "    Corner Size"                  0.05 0.01  1.0 0.01
-#pragma parameter h_cornersmooth       "    Corner Smoothness"            0.5  0.1   1.0 0.1
-#pragma parameter h_angle_x            "    Position X"                   0.0 -1.0   1.0 0.001
-#pragma parameter h_angle_y            "    Position Y"                   0.0 -1.0   1.0 0.001
-#pragma parameter h_overscan_x         "    Overscan X%"                100.0 20.0 200.0 0.2
-#pragma parameter h_overscan_y         "    Overscan Y%"                100.0 20.0 200.0 0.2
+#include "../../../include/uborder_bezel_reflections_common.inc"
 
-#pragma parameter bz_width             "    Content Width"                0.66  0.1   1.0  0.005
-#pragma parameter bz_height            "    Content Height"               0.66  0.1   1.0  0.005
 
 #pragma parameter hiscan "          High Resolution Scanlines (prepend a scaler...)" 0.0 0.0 1.0 1.0
 #define hiscan        params.hiscan
@@ -215,25 +203,6 @@ layout(std140, set = 0, binding = 0) uniform UBO
 #define OutputSize global.OutputSize
 //#define gl_FragCoord (vTexCoord * OutputSize.xy)
 
-vec2  fr_center  = vec2(global.fr_center_x, global.fr_center_y)/100.0;
-float all_zoom   = global.all_zoom/100.0;
-vec2  fr_scale   = vec2(global.fr_scale_x, global.fr_scale_y)*global.fr_zoom*all_zoom/10000.0;
-
-#define bz_width       global.bz_width
-#define bz_height      global.bz_height
-
-vec2  overscan   = vec2(global.h_overscan_x, global.h_overscan_y)/100.0;
-vec2  SIZE       = vec2(bz_width, bz_height);
-vec2  size_over  = overscan * SIZE;
-
-float r2           = global.h_radius * global.h_radius;
-vec2  max_size     = vec2(sqrt( (r2 - 2.0) / (r2 - 1.0) ), 1.0);
-vec2  aspect       = vec2(1.0, OutputSize.y/OutputSize.x);
-vec2  aspect_adj   = vec2(aspect.x, aspect.y*global.fr_scale_y/global.fr_scale_x);
-float cornersize   = global.h_cornersize * min(aspect.x, aspect.y);
-float cornersmooth = global.h_cornersmooth/100.0;
-
-const vec2  middle         = 0.5.xx;
 
 #pragma stage vertex
 layout(location = 0) in vec4 Position;
@@ -322,34 +291,6 @@ vec3 plant (vec3 tar, float r)
 	return tar * r / t;
 }
 
-// Fast when two first params are constants.
-float fsmoothstep(float a, float b, float x) {
-    return clamp(x*(1.0/(b - a)) - (a/(b - a)), 0.0, 1.0);
-//    return smoothstep(a, b, x);
-}
-
-vec2 fsmoothstep(vec2 a, vec2 b, vec2 x) {
-    return clamp(x*(1.0/(b - a)) - (a/(b - a)), 0.0, 1.0);
-//    return smoothstep(a, b, x);
-}
-
-float h_corner(vec2 uv)
-{
-    vec2  d          = abs((2.0*uv - 1.0) * aspect_adj*SIZE) - (aspect_adj*SIZE - cornersize.xx);
-    float borderline = length(max(d, 0.0.xx)) + min(max(d.x, d.y), 0.0) - cornersize;
-
-    return fsmoothstep(cornersmooth, -cornersmooth, borderline);
-}
-
-vec2 h_warp(vec2 uv)
-{
-    vec2 cylinder = sqrt( (r2 - uv.x*uv.x) / (r2 - 2.0*uv.x*uv.x) )*max_size;
-    vec2 sphere   = sqrt( (r2 - 1.0      ) / (r2 - dot(uv, uv))   ).xx;
-
-    uv *= mix(sphere, cylinder, global.h_shape);
-
-    return uv;
-}
 
 
 void main()
@@ -378,7 +319,7 @@ void main()
 // Bezels and border begins...
 
     vec2 uvFC = mix(uv, h_warp(uv), global.h_curvature); // Frame content area
-    uvFC = uvFC/size_over - 2.0*vec2(global.h_angle_x, global.h_angle_y);
+    uvFC = uvFC*overscan - 2.0*vec2(global.h_angle_x, global.h_angle_y);
 
 // Bezels pause...
 

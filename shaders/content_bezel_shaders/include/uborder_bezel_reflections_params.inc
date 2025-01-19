@@ -7,13 +7,22 @@
 #pragma parameter fr_scale_y           "    Scale Y%"                   100.0   20.0 200.0 0.2
 #pragma parameter fr_center_x          "    Center X"                     0.0 -100.0 100.0 0.1
 #pragma parameter fr_center_y          "    Center Y"                     0.0 -100.0 100.0 0.1
+#pragma parameter fr_i_scaling         "    Fix Y Size - Integer Scaling" 0.0   0.0   1.0 1.0
+#pragma parameter fr_i_scaling_fac     "      --> Inc/Dec Y Size"             0.0  -2.0   1.0 1.0
+#pragma parameter fr_i_aspect_x        "      --> Aspect Ratio Numerator"     8.0   1.0   32.0 0.02
+#pragma parameter fr_i_aspect_y        "      --> Aspect Ratio Denominator"   6.0   1.0   32.0 0.02
 
+#ifdef USE_BEZEL_REFLECTIONS_COMMON
 #pragma parameter bz_nonono            "BEZEL:"                           0.0   0.0   1.0  1.0
 #pragma parameter bz_lights            "    Lights  [ OUT | ON ]"         1.0   0.0   1.0  1.0
 #pragma parameter bz_shine_enable      "    Shine   [ OFF | ON ]"         1.0   0.0   1.0  1.0
 #pragma parameter bz_ambient_enable    "    Ambient [ OFF | ON ]"         1.0   0.0   1.0  1.0
+#endif
+
 #pragma parameter bz_width             "    Content Width"                0.66  0.1   1.0  0.005
 #pragma parameter bz_height            "    Content Height"               0.66  0.1   1.0  0.005
+
+#ifdef USE_BEZEL_REFLECTIONS_COMMON
 #pragma parameter bz_ref_str           "    Relflection Strength"         0.25  0.0   1.0  0.01
 #pragma parameter bz_inner_bezel_x     "    Bezel Inner Width"            0.1   0.0   1.0  0.01
 #pragma parameter bz_inner_bezel_y     "    Bezel Inner Height"           0.1   0.0   1.0  0.01
@@ -40,6 +49,7 @@
 #pragma parameter border_center_x      "    Border Center X"              0.0 -0.5 0.5 0.001
 #pragma parameter border_center_y      "    Border Center Y"              0.0 -0.5 0.5 0.001
 #pragma parameter border_mirror_y      "    Border Mirror (Y)"            0.0  0.0 1.0 1.0
+#endif
 
 #pragma parameter h_nonono             "HYLLIAN'S CURVATURE:"             1.0  0.0   1.0 1.0
 #pragma parameter h_curvature          "    Curvature Toggle"             1.0  0.0   1.0 1.0
@@ -52,9 +62,10 @@
 #pragma parameter h_overscan_x         "    Overscan X%"                100.0 20.0 200.0 0.2
 #pragma parameter h_overscan_y         "    Overscan Y%"                100.0 20.0 200.0 0.2
 
-
 #define bz_width       global.bz_width
 #define bz_height      global.bz_height
+
+#ifdef USE_BEZEL_REFLECTIONS_COMMON
 #define bz_shine       global.bz_shine
 #define bz_ambient     global.bz_ambient
 #define bz_ref_str     global.bz_ref_str
@@ -65,3 +76,5 @@
 #define bz_pos         global.bz_pos
 
 #define border_mirror_y  global.border_mirror_y
+#endif
+
