@@ -70,6 +70,7 @@ layout(std140, set = 0, binding = 0) uniform UBO
 
 #define ub_OutputSize     global.OutputSize
 #define ub_OriginalSize   global.OriginalSize
+#define ub_Rotation       global.Rotation
 
 #include "../include/uborder_bezel_reflections_common.inc"
 

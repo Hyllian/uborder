@@ -2,8 +2,11 @@ vec2  fr_center  = vec2(global.fr_center_x, global.fr_center_y)/100.0;
 float all_zoom   = global.all_zoom/100.0;
 vec2  float_scale   = vec2(global.fr_scale_x, global.fr_scale_y)*global.fr_zoom*all_zoom/10000.0;
 
-float int_scale_factor = floor(ub_OutputSize.y * ub_OriginalSize.w) + global.fr_i_scaling_fac;
-vec2  final_scale      = ub_OutputSize.xy * ub_OriginalSize.w
+float OutputRotSize   = mix(  ub_OutputSize.y,   ub_OutputSize.x, mod(ub_Rotation, 2.));
+float OriginalRotSize = mix(ub_OriginalSize.w, ub_OriginalSize.z, mod(ub_Rotation, 2.));
+
+float int_scale_factor = floor(OutputRotSize * OriginalRotSize) + global.fr_i_scaling_fac;
+vec2  final_scale      = ub_OutputSize.xy * OriginalRotSize
                          * vec2(global.fr_i_aspect_y / global.fr_i_aspect_x, 1.0) / int_scale_factor;
 
 vec2 fr_scale = mix(float_scale, 1.0/final_scale, global.fr_i_scaling);
