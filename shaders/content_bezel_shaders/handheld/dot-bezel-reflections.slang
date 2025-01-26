@@ -13,14 +13,12 @@ layout(std140, set = 0, binding = 0) uniform UBO
     float all_zoom;
 
     float fr_zoom;
-    float fr_scale_x;
-    float fr_scale_y;
+    float fr_aspect_x;
+    float fr_aspect_y;
     float fr_center_x;
     float fr_center_y;
     float fr_i_scaling;
     float fr_i_scaling_fac;
-    float fr_i_aspect_x;
-    float fr_i_aspect_y;
 
     float h_shape;
     float h_radius;
@@ -32,8 +30,6 @@ layout(std140, set = 0, binding = 0) uniform UBO
     float h_angle_y;
     float h_curvature;
 
-    float bz_width;
-    float bz_height;
     float bz_shine_enable;
     float bz_shine;
     float bz_shine_size;
@@ -42,6 +38,7 @@ layout(std140, set = 0, binding = 0) uniform UBO
     float bz_ambient_size;
     float bz_ref_str;
     float bz_lights;
+    float bz_transparent;
     float bz_inner_bezel_x;
     float bz_inner_bezel_y;
     float bz_middle_bezel_x;
@@ -61,7 +58,9 @@ layout(std140, set = 0, binding = 0) uniform UBO
     float border_center_x;
     float border_center_y;
     float border_mirror_y;
+    float border_allow_rot;
     float ub_border_top;
+    float border_alpha;
 } global;
 
 #define USE_BEZEL_REFLECTIONS_COMMON
@@ -130,9 +129,7 @@ void main()
 
     uv           = 2.0*vTexCoord - 1.0;
 
-    border_uv = mix( TexCoord.xy, vec2(     TexCoord.y, 1.0- TexCoord.x), float(global.Rotation==1.0));
-    border_uv = mix(border_uv.xy, vec2(1.0-border_uv.x, 1.0-border_uv.y), float(global.Rotation==2.0)); // It seems useless...
-    border_uv = mix(border_uv.xy, vec2(1.0-border_uv.y,     border_uv.x), float(global.Rotation==3.0));
+    border_uv = get_unrotated_coords(get_unrotated_coords(TexCoord.xy, ub_Rotation), int(global.border_allow_rot));
 
     border_uv.y = mix(border_uv.y, 1.0-border_uv.y, border_mirror_y);
 
@@ -168,34 +165,8 @@ layout(set = 0, binding = 2) uniform sampler2D Source;
 layout(set = 0, binding = 3) uniform sampler2D BORDER;
 
 
-void main()
+vec3 get_content(vec2 vTex, vec2 uv)
 {
-// Bezels and border begins...
-
-    vec2 uvFC = mix(uv, h_warp(uv), global.h_curvature); // Frame content area
-    vec2 uvIB = uvFC;                                    // Inner bezel area
-    vec2 uvMB = mix(uv, uvFC, global.bz_outer_curve);    // In Between bezel area
-    vec2 uvOB = uvMB;                                    // Outer bezel area
-
-    uvFC = uvFC*overscan - 2.0*vec2(global.h_angle_x, global.h_angle_y);
-
-    vec2 area_out = RoundedRectVec(vec4(uvMB, uvOB), vec4(MID_BZ, OUT_BZ), bz_r.xx, vec2(SMTH, -SMTH));
-
-    vec4 border = texture(BORDER, border_uv);
-
-    border.rgb *= (bz_lights > 0.5) ? 1.0 : 0.5;
-    if (area_out.y < 0.5) {FragColor = vec4(border.rgb, 1.0); return;}
-
-// Bezels pause...
-
-// Content frame begins... (put content shader code here)
-// crt-nobody
-
-     vec2 vTex = 0.5*uvFC + 0.5;
-
-    float cval = h_corner(vTex)  *  step(0.0, fract(vTex.y));  // Discard off limit pixels
-
-
    vec3 mid_color = lookup(pixel_no, 0.0, 0.0, TEX(c11));
    vec3 color = vec3(0.0, 0.0, 0.0);
    color += lookup(pixel_no, -1.0, -1.0, TEX(c00_10.xy));
@@ -207,22 +178,50 @@ void main()
    color += lookup(pixel_no, -1.0,  1.0, TEX(c21_02.zw));
    color += lookup(pixel_no,  0.0,  1.0, TEX(c12_22.xy));
    color += lookup(pixel_no,  1.0,  1.0, TEX(c12_22.zw));
-   vec3 content = mix(1.2 * mid_color, color, blend);
-   
-// Content frame ends.
+
+   return mix(1.2 * mid_color, color, blend);
+}
+
+
+void main()
+{
+// Bezels and border begins...
+
+    vec2 uvFC = mix(uv, h_warp(uv), global.h_curvature); // Frame content area
+    vec2 uvIB = uvFC;                                    // Inner bezel area
+    vec2 uvMB = mix(uv, uvFC, global.bz_outer_curve);    // In Between bezel area
+    vec2 uvOB = uvMB;                                    // Outer bezel area
+
+    uvFC = uvFC*overscan - content_position;
+
+    vec2 area_out = RoundedRectVec(vec4(uvMB, uvOB), vec4(MID_BZ, OUT_BZ), bz_r.xx, vec2(SMTH, -SMTH));
+
+    vec4 border = texture(BORDER, border_uv);
+
+    border.rgb *= (bz_lights > 0.5) ? 1.0 : 0.5;
+    if (area_out.y < 1.0) {FragColor = vec4(border.rgb, 1.0); return;}
+
+// Bezels pause...
+
+     vec2 fcTex = 0.5*uvFC + 0.5;
+
+    float cval = h_corner(fcTex)  *  step(0.0, fract(fcTex.y));  // Discard off limit pixels
+
+// Call to content shader here.
+    vec3 content = get_content(fcTex, uv) * vec3(cval);
 
 // Bezels continue...
 
-    vec2 area_inn = RoundedRectVec(vec4(uvIB, uvMB), vec4(INN_BZ, MID_BZ), bz_r.xx, vec2(SMTH, -SMTH));
+    vec2  area_inn      = RoundedRectVec(vec4(uvIB, uvMB), vec4(INN_BZ, MID_BZ), bz_r.xx, vec2(SMTH, -SMTH));
 
-    float out_border = RoundedRect(uvOB, OUT_BZ, bz_r, SMTH.xx);
+    float out_border    = 1.0 - area_out.y;
 
-    vec3 frame_content = mix(content+border.rgb*out_border, mix(content.rgb, border.rgb, border.a), global.ub_border_top);
+    vec3  frame_content = mix(content, mix(content.rgb, border.rgb, border.a), global.ub_border_top);
 
-    const float ambient = bz_ambient;
+    const float ambient     = bz_ambient;
     const float ambient_out = 1.4*bz_ambient;
-    vec3 shine_content = 0.0.xxx;
-    vec3 ambient_content = 0.0.xxx;
+    vec3 shine_content      = 0.0.xxx;
+    vec3 ambient_content    = 0.0.xxx;
 
     if (bz_lights == 1.0)
     {
@@ -238,7 +237,10 @@ void main()
 
     frame_content += (global.bz_ambient_enable*ambient_content + global.bz_shine_enable*shine_content);
 
-    if (area_inn.x < 0.5) { FragColor = vec4(frame_content, 1.0); return;}
+    if (area_inn.x < 0.5)
+    {FragColor = vec4(mix(border.rgb, mix(border.rgb, frame_content, cval*(1.0-global.border_alpha)), float(max(fcTex.x, fcTex.y) <=1.0)), 1.0);
+      return;
+    }
 
     float bezel_inner_area = area_inn.x * area_inn.y;
     float bezel_outer_area = area_out.x * area_out.y;
@@ -261,17 +263,19 @@ void main()
     IB = vec2(IB.x*mb_aspect, IB.y - MID_BZ.y + mb_aspect*MID_BZ.x);
     float corner = fsmoothstep(-bz_r, bz_r, IB.y - mix(IB.x, bz_ang*IB.x + bz_pos, cyl_shape));
 
+    if (global.bz_transparent > 0.5) BZ_COLOR = border.rgb;
+
     if (bz_lights == 1.0)
     {
         // Bezel texture 
         vec3 bz_color = clamp(BZ_COLOR + rand(uvIB)*0.0125-0.00625, 0.0, 1.0) + 
                                          rand(uvIB+1.0.xx)*0.0625 * cos(0.75*PI*uvIB.x);
         // Inner Bezel and Reflections
-//        bezels += bz_color * bezel_inner_area * (Blur + 0.25*(1.0 + corner));
         bezels += (bz_color + Blur) * bezel_inner_area * (0.25*(1.0 + corner));
 
     	// Outer Bezel
-   	bezels += bz_color * bezel_outer_area;
+   	bezels +=  mix(bz_color, BZ_COLOR, global.bz_transparent) * bezel_outer_area;
+
     }
     else
     {
@@ -280,14 +284,14 @@ void main()
                                 RoundedRect(uvOB, MID_BZ, bz_r, vec2(SMTH*2.0, -SMTH* 2.0));
 
         // Inner Bezel and Reflections
-      //  bezels += BZ_COLOR * bezel_inner_area * (ambient_out * (0.7 + 0.35*(1.0 - corner)) + Blur);
         bezels += (BZ_COLOR + Blur) * bezel_inner_area * (ambient_out * (0.7 + 0.35*(1.0 - corner)) + Blur);
 
         // Outer Bezel
-        bezels += BZ_COLOR * bezel_outer_area * ambient_out;
+        bezels += BZ_COLOR * bezel_outer_area * mix(ambient_out, 1.0, global.bz_transparent);
+
     }
 
-    bezels = mix(bezels+border.rgb*out_border, mix(bezels, border.rgb, border.a), global.ub_border_top);
+    bezels = mix(bezels+border.rgb*bezel_inner_area*global.bz_transparent, mix(bezels, border.rgb, border.a), global.ub_border_top);
 
     FragColor = vec4(bezels, 1.0);
 }

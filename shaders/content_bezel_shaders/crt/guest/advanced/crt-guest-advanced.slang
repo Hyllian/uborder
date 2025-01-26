@@ -60,14 +60,12 @@ layout(std140, set = 0, binding = 0) uniform UBO
     float all_zoom;
 
     float fr_zoom;
-    float fr_scale_x;
-    float fr_scale_y;
+    float fr_aspect_x;
+    float fr_aspect_y;
     float fr_center_x;
     float fr_center_y;
     float fr_i_scaling;
     float fr_i_scaling_fac;
-    float fr_i_aspect_x;
-    float fr_i_aspect_y;
 
     float h_shape;
     float h_radius;
@@ -79,8 +77,6 @@ layout(std140, set = 0, binding = 0) uniform UBO
     float h_angle_y;
     float h_curvature;
 
-    float bz_width;
-    float bz_height;
 } global;
 
 #include "../../../include/uborder_bezel_reflections_params.inc"

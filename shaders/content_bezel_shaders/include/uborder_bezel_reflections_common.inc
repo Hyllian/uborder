@@ -1,28 +1,47 @@
-vec2  fr_center  = vec2(global.fr_center_x, global.fr_center_y)/100.0;
-float all_zoom   = global.all_zoom/100.0;
-vec2  float_scale   = vec2(global.fr_scale_x, global.fr_scale_y)*global.fr_zoom*all_zoom/10000.0;
+// Rotation functions borrowed from fishku
+// See misc/shaders/input_transform/input_transform.inc for copyright and other information.
+// This path will be used eventually.
+//#include "../../../../../misc/shaders/input_transform/rotation.inc"
+#include "rotation.inc"
 
-float OutputRotSize   = mix(  ub_OutputSize.y,   ub_OutputSize.x, mod(ub_Rotation, 2.));
-float OriginalRotSize = mix(ub_OriginalSize.w, ub_OriginalSize.z, mod(ub_Rotation, 2.));
+float is_rotated  = mod(ub_Rotation, 2.);
 
-float int_scale_factor = floor(OutputRotSize * OriginalRotSize) + global.fr_i_scaling_fac;
-vec2  final_scale      = ub_OutputSize.xy * OriginalRotSize
-                         * vec2(global.fr_i_aspect_y / global.fr_i_aspect_x, 1.0) / int_scale_factor;
+vec2  fr_center   = get_rotated_vector(vec2(global.fr_center_x, global.fr_center_y)/100.0, ub_Rotation);
+float all_zoom    = global.all_zoom/100.0;
+//vec2  scale_XY    = vec2(global.fr_scale_x, global.fr_scale_y)*global.fr_zoom*all_zoom/10000.0;
+//vec2  scale_XY    = vec2(global.fr_scale_x, global.fr_scale_y)*all_zoom/100.0;
 
-vec2 fr_scale = mix(float_scale, 1.0/final_scale, global.fr_i_scaling);
+vec2 OutputRotSize      = get_rotated_size(  ub_OutputSize.xy, ub_Rotation);
+vec2 OriginalRotInvSize = get_rotated_size(ub_OriginalSize.zw, ub_Rotation);
 
-vec2  content_size = mix(vec2(bz_width, bz_height), 1.0.xx, global.fr_i_scaling);
-vec2  overscan     = 100.0/(content_size*vec2(global.h_overscan_x, global.h_overscan_y));
+vec2  int_ar           = vec2(global.fr_aspect_y / global.fr_aspect_x, 1.0);
+float int_scale_factor = max(floor(OutputRotSize.x * OriginalRotInvSize.y) + global.fr_i_scaling_fac, 1.0);
+vec2  int_scale        = OutputRotSize.xy * OriginalRotInvSize.y
+                         * mix(int_ar, 1.0 / int_ar.yx, is_rotated) / int_scale_factor;
+
+vec2  float_scale      = OutputRotSize.x * global.fr_zoom * all_zoom / (OutputRotSize.xy  * 100.0
+                         * mix(int_ar, 1.0 / int_ar.yx, is_rotated));
+
+//vec2  float_scale      = OutputRotSize.x * (global.fr_zoom*(int_ar.x/int_ar.y)) * all_zoom / (OutputRotSize.xy
+  //                       * 100.0 * mix(int_ar, 1.0 / int_ar.yx, is_rotated));
+
+//vec2  float_scale   = (global.fr_fix_ar > 0.5) ? scale_AR : scale_XY;
+
+vec2 fr_scale = get_rotated_size(mix(float_scale, 1.0/int_scale, global.fr_i_scaling), ub_Rotation);
+
+vec2 overscan         = 100.0/(get_rotated_size(vec2(global.h_overscan_x, global.h_overscan_y), ub_Rotation));
+vec2 content_position = 2.0*get_rotated_vector(vec2(global.h_angle_x, global.h_angle_y), ub_Rotation);
 
 float r2           = global.h_radius * global.h_radius;
 vec2  max_size     = vec2(sqrt( (r2 - 2.0) / (r2 - 1.0) ), 1.0);
-vec2  sph_factor   = r2 - fr_scale*content_size;
-vec2  aspect       = vec2(1.0, ub_OutputSize.y/ub_OutputSize.x);
-vec2  aspect_adj   = content_size*vec2(aspect.x, aspect.y*global.fr_scale_y/global.fr_scale_x);
+//vec2  aspect       = vec2(1.0, ub_OutputSize.y/ub_OutputSize.x);
+vec2  aspect       = vec2(1.0, OutputRotSize.y/OutputRotSize.x);
+//vec2  aspect_adj   = vec2(aspect.x, aspect.y*global.fr_scale_y/global.fr_scale_x);
+//vec2  aspect_adj   = aspect;
 float cornersize   = global.h_cornersize * min(aspect.x, aspect.y);
 float cornersmooth = global.h_cornersmooth/100.0;
 
-const vec2  middle         = 0.5.xx;
+const vec2  middle = 0.5.xx;
 
 // Fast when two first params are constants.
 float fsmoothstep(float a, float b, float x) {
@@ -37,7 +56,7 @@ vec2 fsmoothstep(vec2 a, vec2 b, vec2 x) {
 
 float h_corner(vec2 uv)
 {
-    vec2  d          = abs((2.0*uv - 1.0) * aspect_adj) - (aspect_adj - cornersize.xx);
+    vec2  d          = abs((2.0*uv - 1.0) * aspect) - (aspect - cornersize.xx);
     float borderline = length(max(d, 0.0.xx)) + min(max(d.x, d.y), 0.0) - cornersize;
 
     return fsmoothstep(cornersmooth, -cornersmooth, borderline);
@@ -46,9 +65,9 @@ float h_corner(vec2 uv)
 vec2 h_warp(vec2 uv)
 {
     vec2 cylinder = sqrt( (r2 - uv.x*uv.x) / (r2 - 2.0*uv.x*uv.x) )*max_size;
-    vec2 sphere   =  sqrt( (sph_factor) / ( r2 - dot(uv, uv) ) );
+    float sphere   =  sqrt( (r2 - 1.0) / ( r2 - dot(uv, uv) ) );
 
-    uv *= mix(sphere, cylinder, global.h_shape);
+    uv *= mix(sphere.xx, cylinder, global.h_shape);
 
     return uv;
 }
@@ -64,19 +83,20 @@ vec2 h_warp(vec2 uv)
 float shine_size = (1.0 - global.bz_shine_size  );
 float amb_size   = (1.0 - global.bz_ambient_size);
 
-const vec2  shine_position = vec2(0.0, 1.0);
-const float SMTH           = 0.004;
-const vec2  bz_shadow      = vec2(0.0, -0.06);
+vec2  shine_position = get_rotated_vector(vec2(0.0, 1.0), ub_Rotation);
+const float SMTH     = 0.004;
+vec2  bz_shadow      = get_rotated_vector(vec2(0.0, -0.06), ub_Rotation);
 
 vec3 BZ_COLOR = vec3(global.bz_red, global.bz_green, global.bz_blue)/255.0;
 
-vec2 INN_BZ = vec2(global.bz_inner_bezel_x, global.bz_inner_bezel_y) + content_size;
-vec2 MID_BZ = vec2(global.bz_middle_bezel_x, global.bz_middle_bezel_y) + INN_BZ;
-vec2 OUT_BZ = vec2(global.bz_outer_bezel_x, global.bz_outer_bezel_y) + MID_BZ;
+vec2 INN_BZ = get_rotated_size(vec2(global.bz_inner_bezel_x, global.bz_inner_bezel_y), ub_Rotation) + 1.0.xx;
+vec2 MID_BZ = get_rotated_size(vec2(global.bz_middle_bezel_x, global.bz_middle_bezel_y), ub_Rotation) + INN_BZ;
+vec2 OUT_BZ = get_rotated_size(vec2(global.bz_outer_bezel_x, global.bz_outer_bezel_y), ub_Rotation) + MID_BZ;
 
 float cyl_shape = (1.0-global.bz_outer_curve)*global.h_shape*global.h_curvature;
 
-float mb_aspect = global.bz_middle_bezel_y/global.bz_middle_bezel_x;
+//float mb_aspect = global.bz_middle_bezel_y/global.bz_middle_bezel_x;
+float mb_aspect = (MID_BZ.y-INN_BZ.y)/(MID_BZ.x-INN_BZ.x);
 
 vec2  border_pos = vec2(global.border_center_x,global.border_center_y);
 
