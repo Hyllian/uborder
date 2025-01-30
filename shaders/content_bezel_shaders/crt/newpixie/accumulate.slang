@@ -59,6 +59,7 @@ layout(push_constant) uniform Push
 
 #include "../../include/uborder_bezel_reflections_params.inc"
 
+#pragma parameter NEW_NONONO            "NEWPIXIE-CRT:"                     0.0  0.0   1.0 1.0
 #pragma parameter acc_modulate "Accumulate Modulation" 0.65 0.0 1.0 0.01
 #define modulate params.acc_modulate
 

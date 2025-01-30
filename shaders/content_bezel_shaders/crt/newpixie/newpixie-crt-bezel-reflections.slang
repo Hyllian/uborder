@@ -67,23 +67,6 @@ layout(push_constant) uniform Push
 	float ghosting;
 } params;
 
-//#pragma parameter use_frame "Use Frame Image" 0.0 0.0 1.0 1.0
-//#define use_frame params.use_frame
-#pragma parameter curvature "Curvature" 0.0001 0.0001 4.0 0.25
-#pragma parameter wiggle_toggle "Interference" 0.0 0.0 1.0 1.0
-#pragma parameter scanroll "Rolling Scanlines" 1.0 0.0 1.0 1.0
-#pragma parameter vignette "Vignette" 1.0 0.0 1.0 0.05
-#pragma parameter ghosting "Ghosting" 1.0 0.0 2.0 0.10
-
-//#define gl_FragCoord (vTexCoord.xy * params.OutputSize.xy)
-//#define gl_FragCoord (mix(vTex.xy, uv.xy, global.h_curvature) * params.OutputSize.xy)
-//#define gl_FragCoord (vTex.xy * params.OutputSize.xy)
-#define gl_FragCoord (vTexOri.xy * params.OutputSize.xy)
-//#define gl_FragCoord ((0.5*uv2.xy+0.5.xx)*params.OutputSize.xy)
-
-#define backbuffer accum1
-#define blurbuffer blur2
-//#define frametexture frametexture
 
 layout(std140, set = 0, binding = 0) uniform UBO
 {
@@ -153,6 +136,24 @@ layout(std140, set = 0, binding = 0) uniform UBO
 
 #include "../../include/uborder_bezel_reflections_common.inc"
 
+//#pragma parameter use_frame "Use Frame Image" 0.0 0.0 1.0 1.0
+//#define use_frame params.use_frame
+#pragma parameter curvature "Curvature" 0.0001 0.0001 4.0 0.25
+#pragma parameter wiggle_toggle "Interference" 0.0 0.0 1.0 1.0
+#pragma parameter scanroll "Rolling Scanlines" 1.0 0.0 1.0 1.0
+#pragma parameter vignette "Vignette" 1.0 0.0 1.0 0.05
+#pragma parameter ghosting "Ghosting" 1.0 0.0 2.0 0.10
+
+//#define resolution (params.OutputSize.xy)
+#define resolution (params.OutputSize.xy*fr_scale)
+
+//#define gl_FragCoord (vTexCoord.xy * params.OutputSize.xy)
+#define gl_FragCoord (mix(vTex.xy, uv2.xy, global.h_curvature) * resolution)
+
+
+#define backbuffer accum1
+#define blurbuffer blur2
+//#define frametexture frametexture
 
 #pragma stage vertex
 layout(location = 0) in vec4 Position;
@@ -192,11 +193,13 @@ layout(set = 0, binding = 3) uniform sampler2D accum1;
 layout(set = 0, binding = 4) uniform sampler2D blur2;
 layout(set = 0, binding = 5) uniform sampler2D BORDER;
 
-vec3 tsample( sampler2D samp, vec2 tc, float offs, vec2 resolution )
+// Why 'resolution' if you don't need!? :P
+//vec3 tsample( sampler2D samp, vec2 tc, float offs, vec2 resolution )
+vec3 tsample( sampler2D samp, vec2 tc, float offs )
     {
     tc = tc * vec2(1.025, 0.92) + vec2(-0.0125, 0.04);
 //    vec3 s = pow( abs( texture( samp, vec2( tc.x, 1.0-tc.y ) ).rgb), vec3( 2.2 ) );
-    vec3 s = pow( abs( texture( samp, vec2( tc.x, tc.y ) ).rgb), vec3( 2.2 ) );
+    vec3 s = pow( abs( texture( samp, vec2( tc.x, tc.y ) ).rgb), vec3( 2.2 ) ); // invert y dimension.
     return s*vec3(1.25);
     }
 		
@@ -219,13 +222,12 @@ vec2 curve( vec2 uv )
     uv =  uv *0.92 + 0.04;
     return uv;
     }
-/*		
+/* Uborder already has this exactly function.		
 float rand(vec2 co)
     {
     return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
     }
-  */  
-#define resolution params.OutputSize.xy
+  */
 
 vec3 get_content(vec2 vTex, vec2 uv2)
 {
@@ -246,10 +248,11 @@ vec3 get_content(vec2 vTex, vec2 uv2)
     float o =sin(gl_FragCoord.y*1.5)/resolution.x;
     x+=o*0.25;
    // make time do something again
-   time = float(mod(params.FrameCount, 640) * 1); 
-    col.r = tsample(backbuffer,vec2(x+scuv.x+0.0009,scuv.y+0.0009),resolution.y/800.0, resolution ).x+0.02;
-    col.g = tsample(backbuffer,vec2(x+scuv.x+0.0000,scuv.y-0.0011),resolution.y/800.0, resolution ).y+0.02;
-    col.b = tsample(backbuffer,vec2(x+scuv.x-0.0015,scuv.y+0.0000),resolution.y/800.0, resolution ).z+0.02;
+//   time = float(mod(params.FrameCount, 640) * 1); 
+   time = -float(mod(params.FrameCount, 640) * 1); // roll scanlines downward. 
+    col.r = tsample(backbuffer,vec2(x+scuv.x+0.0009,scuv.y+0.0009),resolution.y/800.0 ).x+0.02;
+    col.g = tsample(backbuffer,vec2(x+scuv.x+0.0000,scuv.y-0.0011),resolution.y/800.0 ).y+0.02;
+    col.b = tsample(backbuffer,vec2(x+scuv.x-0.0015,scuv.y+0.0000),resolution.y/800.0 ).z+0.02;
     float i = clamp(col.r*0.299 + col.g*0.587 + col.b*0.114, 0.0, 1.0 );
     i = pow( 1.0 - pow(i,2.0), 1.0 );
     i = (1.0-i) * 0.85 + 0.15; 
@@ -258,13 +261,13 @@ vec3 get_content(vec2 vTex, vec2 uv2)
     float ghs = 0.15 * params.ghosting;
     vec3 r = tsample(blurbuffer, vec2(x-0.014*1.0, -0.027)*0.85+0.007*vec2( 0.35*sin(1.0/7.0 + 15.0*curved_uv.y + 0.9*time), 
         0.35*sin( 2.0/7.0 + 10.0*curved_uv.y + 1.37*time) )+vec2(scuv.x+0.001,scuv.y+0.001),
-        5.5+1.3*sin( 3.0/9.0 + 31.0*curved_uv.x + 1.70*time),resolution).xyz*vec3(0.5,0.25,0.25);
+        5.5+1.3*sin( 3.0/9.0 + 31.0*curved_uv.x + 1.70*time)).xyz*vec3(0.5,0.25,0.25);
     vec3 g = tsample(blurbuffer, vec2(x-0.019*1.0, -0.020)*0.85+0.007*vec2( 0.35*cos(1.0/9.0 + 15.0*curved_uv.y + 0.5*time), 
         0.35*sin( 2.0/9.0 + 10.0*curved_uv.y + 1.50*time) )+vec2(scuv.x+0.000,scuv.y-0.002),
-        5.4+1.3*sin( 3.0/3.0 + 71.0*curved_uv.x + 1.90*time),resolution).xyz*vec3(0.25,0.5,0.25);
+        5.4+1.3*sin( 3.0/3.0 + 71.0*curved_uv.x + 1.90*time)).xyz*vec3(0.25,0.5,0.25);
     vec3 b = tsample(blurbuffer, vec2(x-0.017*1.0, -0.003)*0.85+0.007*vec2( 0.35*sin(2.0/3.0 + 15.0*curved_uv.y + 0.7*time), 
         0.35*cos( 2.0/3.0 + 10.0*curved_uv.y + 1.63*time) )+vec2(scuv.x-0.002,scuv.y+0.000),
-        5.3+1.3*sin( 3.0/7.0 + 91.0*curved_uv.x + 1.65*time),resolution).xyz*vec3(0.25,0.25,0.5);
+        5.3+1.3*sin( 3.0/7.0 + 91.0*curved_uv.x + 1.65*time)).xyz*vec3(0.25,0.25,0.5);
 		
     col += vec3(ghs*(1.0-0.299))*pow(clamp(vec3(3.0)*r,vec3(0.0),vec3(1.0)),vec3(2.0))*vec3(i);
     col += vec3(ghs*(1.0-0.587))*pow(clamp(vec3(3.0)*g,vec3(0.0),vec3(1.0)),vec3(2.0))*vec3(i);
