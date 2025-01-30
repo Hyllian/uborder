@@ -27,7 +27,7 @@
 layout(push_constant) uniform Push
 {
 	float IOS, brightboost, brightboost1, csize, bsize1, warpX, warpY, glow, shadowMask, masksize,
-	slotmask, slotmask1, slotwidth, double_slot, mcut, maskDark, maskLight, maskstr, mshift, mask_layout, mask_bloom, hiscan;
+	slotmask, slotmask1, slotwidth, double_slot, mcut, maskDark, maskLight, maskstr, mshift, mask_layout, mask_bloom, hiscan, pr_scan;
 } params;
 
 layout(std140, set = 0, binding = 0) uniform UBO
@@ -67,8 +67,9 @@ layout(std140, set = 0, binding = 0) uniform UBO
 	float dctypey;
 	float post_br;
 	float maskboost;
-	float smoothmask;
+	float smoothmask;	
 	float gamma_c;
+	float gamma_c2;
 	float m_glow;
 	float m_glow_low;
 	float m_glow_high;
@@ -82,7 +83,6 @@ layout(std140, set = 0, binding = 0) uniform UBO
 	float hmask1;
 	float mzoom_sh;
 	float mclip;
-
     uint Rotation;
 
     float all_zoom;
@@ -151,6 +151,7 @@ layout(std140, set = 0, binding = 0) uniform UBO
 
 
 
+
 #pragma parameter hiscan "          High Resolution Scanlines (prepend a scaler...)" 0.0 0.0 1.0 1.0
 #define hiscan        params.hiscan
 
@@ -197,6 +198,9 @@ layout(std140, set = 0, binding = 0) uniform UBO
 
 #pragma parameter gamma_c "          Gamma correct" 1.0 0.50 2.0 0.025
 #define gamma_c   global.gamma_c     // adjust brightness
+
+#pragma parameter gamma_c2 "          Complementary Gamma correct" 1.0 1.0 2.0 0.025
+#define gamma_c2   global.gamma_c2     // adjust brightness
 
 #pragma parameter bogus_screen "[ SCREEN OPTIONS ]: " 0.0 0.0 1.0 1.0
 
@@ -286,7 +290,7 @@ layout(std140, set = 0, binding = 0) uniform UBO
 #pragma parameter slotms "          Slot Mask Thickness" 1.0 1.0 4.0 1.0
 #define slotms  global.slotms     // Slot Mask Thickness
 
-#pragma parameter smoothmask "          Smooth Masks in bright scanlines" 0.0 0.0 1.0 1.0
+#pragma parameter smoothmask "          Smooth Masks in bright scanlines" 0.0 0.0 2.0 0.25
 #define smoothmask  global.smoothmask
 
 #pragma parameter smask_mit "          Mitigate Slotmask Interaction" 0.0 0.0 1.0 0.05
@@ -297,6 +301,9 @@ layout(std140, set = 0, binding = 0) uniform UBO
 
 #pragma parameter mclip "          Preserve Mask Strength" 0.0 0.0 1.0 0.025
 #define mclip  global.mclip
+
+#pragma parameter pr_scan "          Preserve Scanline Strength" 0.10 0.0 1.0 0.025
+#define pr_scan  params.pr_scan
 
 #pragma parameter gamma_out "          Gamma out" 1.75 1.0 5.0 0.05
 #define gamma_out    global.gamma_out     // output gamma
@@ -378,7 +385,6 @@ layout(set = 0, binding = 4) uniform sampler2D PrePass;
 layout(set = 0, binding = 5) uniform sampler2D Source;
 layout(set = 0, binding = 6) uniform sampler2D GlowPass;
 layout(set = 0, binding = 7) uniform sampler2D BORDER;
-
 
 #define eps 1e-10 
 
@@ -636,6 +642,14 @@ float igc(float mc)
 	return pow(mc, gamma_c);
 }
 
+vec3 gc2(vec3 c, float w3)
+{
+	float mc = max(max(c.r,c.g),c.b);
+	float gp = 1.0/(1.0 + (gamma_c2 - 1.0)*mix(0.375, 1.0, w3));
+	float mg = pow(mc, gp);
+	return c * mg/(mc + eps);  
+}
+
 // noise function:
 // Dedicated to the public domain.
 // If you want a real license, you may consider this MIT/BSD/CC0/WTFPL-licensed (take your pick).
@@ -749,7 +763,7 @@ if ((abs(global.deconrr) + abs(global.deconrry) + abs(global.deconrg) + abs(glob
 	float cm = igc(max(max(color.r,color.g),color.b));
 	float mx1 = COMPAT_TEXTURE(Source, pos1     ).a;
 	float colmx = max(mx1, cm);
-	float w3 = min((cm + 0.0001) / (colmx + 0.0005), 1.0); if(interb) w3 = 1.0;
+	float w3 = min((max((cm - 0.0005)*1.0005 ,0.0) + 0.0001) / (colmx + 0.0005), 1.0); if(interb) w3 = 1.0;
 	
 	vec2 dx = vec2(0.001, 0.0);
 	float mx0 = COMPAT_TEXTURE(Source, pos1 - dx).a;
@@ -860,8 +874,6 @@ else{
 		color = pow(pow(color, vec3(mask_gamma/gamma_in)) + abs(bloom) * pow(Bloom1, vec3(mask_gamma/gamma_in)), vec3(gamma_in/mask_gamma));
 	}
 
-	if (!interb) color = declip(min(color,1.0), mix(1.0, w3, 0.6));
-
 	if (halation > 0.01) {
 		Bloom = 0.5*(Bloom + Bloom*Bloom);
 		float mbl = max(max(Bloom.r,Bloom.g),Bloom.b); float cmxh = 0.5*(colmx + colmx*colmx);
@@ -876,8 +888,10 @@ else{
 		Bloom = plant(Bloom + Ref + orig1 + Bloom*Bloom*Bloom, min(mbl*mbl,0.75));
 		color = color + 2.0*mix(1.0,w3,0.5*colmx)*hcmask*Bloom*(-halation); }
 
-	float w = 0.25 + 0.60*mix(w3, 1.0, sqrt(colmx));
-	if (smoothmask > 0.5) { color = min(color,1.0); color = max(min(color/w3, 1.0)*w3, min(orig1*bb,color*(1.0-w3))); }
+	color = min(color,1.0);
+	color = gc2(color,w3);
+	
+	if (smoothmask > 0.125) { float w4 = pow(w3, 0.425 + 0.3*smoothmask); w4 = max(w4 - 0.175*colmx*smoothmask, 0.2); color = mix(min(color/w4, plant(orig1,1.0 + 0.175*colmx*smoothmask))*w4, color, w4); }
 
 	if (global.m_glow < 0.5) Glow = mix(Glow, 0.25*color, colmx);
 	else
@@ -888,7 +902,7 @@ else{
 		Ref = abs(orig2-Bloom);
 		mx0 = max(max(orig2.r,orig2.g),orig2.b)-min(min(orig2.r,orig2.g),orig2.b);
 		mx2 = max(max(Bloom.r,Bloom.g),Bloom.b)-min(min(Bloom.r,Bloom.g),Bloom.b);		
-		Bloom = mix(maxb*min(Bloom,orig2), w*mix(mix(Glow, max(max(Ref.r,Ref.g),Ref.b)*Glow, max(mx,mx0)), mix(color, Glow, mx2), max(mx0,mx2)*Ref), min(sqrt((1.10-mx0)*(0.10+mx2)),1.0));
+		Bloom = mix(maxb*min(Bloom,orig2), mix(mix(Glow, max(max(Ref.r,Ref.g),Ref.b)*Glow, max(mx,mx0)), mix(color, Glow, mx2), max(mx0,mx2)*Ref), min(sqrt((1.10-mx0)*(0.10+mx2)),1.0));
 		if (global.m_glow > 1.5) Glow = mix(0.5*Glow*Glow,Bloom,Bloom);
 		Glow = mix(global.m_glow_low*Glow, global.m_glow_high*Bloom, pow(colmx, global.m_glow_dist/gamma_in));
 	}
@@ -899,7 +913,9 @@ else{
 
 	color = min(color, 1.0);
 	
-	color = min(color, max(orig1,color)*mix(one, cmask1, mclip));
+	color = color * mix(1.0, mix(0.5*(1.0+w3), w3, mx), pr_scan);  // preserve scanlines
+	
+	color = min(color, max(orig1,color)*mix(one, cmask1, mclip));  // preserve mask
 	
 	color = pow(color, vec3(1.0/gamma_out));
 

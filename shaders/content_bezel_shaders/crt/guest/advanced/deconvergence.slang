@@ -68,6 +68,7 @@ layout(std140, set = 0, binding = 0) uniform UBO
 	float maskboost;
 	float smoothmask;	
 	float gamma_c;
+	float gamma_c2;
 	float m_glow;
 	float m_glow_low;
 	float m_glow_high;
@@ -194,6 +195,9 @@ layout(std140, set = 0, binding = 0) uniform UBO
 
 #pragma parameter gamma_c "          Gamma correct" 1.0 0.50 2.0 0.025
 #define gamma_c   global.gamma_c     // adjust brightness
+
+#pragma parameter gamma_c2 "          Complementary Gamma correct" 1.0 1.0 2.0 0.025
+#define gamma_c2   global.gamma_c2     // adjust brightness
 
 #pragma parameter bogus_screen "[ SCREEN OPTIONS ]: " 0.0 0.0 1.0 1.0
 
@@ -645,6 +649,14 @@ float igc(float mc)
 	return pow(mc, gamma_c);
 }
 
+vec3 gc2(vec3 c, float w3)
+{
+	float mc = max(max(c.r,c.g),c.b);
+	float gp = 1.0/(1.0 + (gamma_c2 - 1.0)*mix(0.375, 1.0, w3));
+	float mg = pow(mc, gp);
+	return c * mg/(mc + eps);  
+}
+
 // noise function:
 // Dedicated to the public domain.
 // If you want a real license, you may consider this MIT/BSD/CC0/WTFPL-licensed (take your pick).
@@ -732,7 +744,6 @@ vec3 get_content(vec2 vTex, vec2 uv)
    
 //	vec2 texcoord = TEX0.xy;
 	vec2 texcoord = vTex.xy;
-
 	if (IOS > 0.0 && !interb){
 		vec2 ofactor = OutputSize.xy/global.OriginalSize.xy;
 		vec2 intfactor = (IOS < 2.5) ? floor(ofactor) : ceil(ofactor);
@@ -891,7 +902,9 @@ else{
 		color = color + 2.0*mix(1.0,w3,0.5*colmx)*hcmask*Bloom*(-halation); }
 
 	color = min(color,1.0);
-	if (smoothmask > 0.125) { float w4 = max(w3 - 0.175*colmx*smoothmask, 0.10); color = mix(min(color/w4, plant(orig1,1.0 + 0.175*colmx*smoothmask))*w4, color, w4); }
+	color = gc2(color,w3);
+	
+	if (smoothmask > 0.125) { float w4 = pow(w3, 0.425 + 0.3*smoothmask); w4 = max(w4 - 0.175*colmx*smoothmask, 0.2); color = mix(min(color/w4, plant(orig1,1.0 + 0.175*colmx*smoothmask))*w4, color, w4); }
 	
 	if (global.m_glow < 0.5) Glow = mix(Glow, 0.25*color, colmx);
 	else
@@ -913,7 +926,7 @@ else{
 
 	color = min(color, 1.0);
 	
-	color = color * mix(1.0, w3, pr_scan);  // preserve scanlines
+	color = color * mix(1.0, mix(0.5*(1.0+w3), w3, mx), pr_scan);  // preserve scanlines
 	
 	color = min(color, max(orig1,color)*mix(one, cmask1, mclip));  // preserve mask
 	
@@ -935,6 +948,7 @@ else{
 
     return color*vig*humbar(mix(pos.y, pos.x, global.bardir))*global.post_br*corner(pos0);
 }
+
 
 
 void main()

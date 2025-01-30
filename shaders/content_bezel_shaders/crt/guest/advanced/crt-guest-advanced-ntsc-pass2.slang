@@ -41,6 +41,7 @@ layout(std140, set = 0, binding = 0) uniform UBO
 	float halation;
 	float scans;
 	float gamma_c;
+	float gamma_c2;
 	float gamma_out;
 	float overscanX;
 	float overscanY;
@@ -88,6 +89,7 @@ layout(std140, set = 0, binding = 0) uniform UBO
 #include "../../../include/uborder_bezel_reflections_common.inc"
 
 
+
 #pragma parameter hiscan "          High Resolution Scanlines (prepend a scaler...)" 0.0 0.0 1.0 1.0
 #define hiscan        params.hiscan
 
@@ -116,6 +118,9 @@ layout(std140, set = 0, binding = 0) uniform UBO
 
 #pragma parameter gamma_c "          Gamma correct" 1.0 0.50 2.0 0.025
 #define gamma_c   global.gamma_c     // adjust brightness
+
+#pragma parameter gamma_c2 "          Complementary Gamma correct" 1.0 1.0 2.0 0.025
+#define gamma_c2   global.gamma_c2     // adjust brightness
 
 #pragma parameter brightboost "          Bright Boost Dark Pixels" 1.40 0.25 10.0 0.05
 #define brightboost  params.brightboost     // adjust brightness
@@ -289,7 +294,6 @@ vec3 plant (vec3 tar, float r)
 	float t = max(max(tar.r,tar.g),tar.b) + 0.00001;
 	return tar * r / t;
 }
-
 
 
 void main()

@@ -27,7 +27,7 @@
 layout(push_constant) uniform Push
 {
 	float IOS, brightboost, brightboost1, gsl, scanline1, scanline2, beam_min, beam_max, beam_size,
-    glow, inters, bloom, halation, scans, gamma_c, no_scanlines, MAXS, tds, clips, ssharp, hiscan, SIGMA_VER, VSHARPNESS, HARNG, HSHARP, S_SHARP, rolling_scan;
+    glow, inters, bloom, halation, scans, gamma_c, gamma_c2, no_scanlines, MAXS, tds, clips, ssharp, hiscan, SIGMA_VER, VSHARPNESS, HARNG, HSHARP, S_SHARP, rolling_scan;
 } params;
 
 layout(std140, set = 0, binding = 0) uniform UBO
@@ -55,7 +55,6 @@ layout(std140, set = 0, binding = 0) uniform UBO
 	float bloom_dist;
 	float bmask1;
 	float hmask1;
-
     uint Rotation;
 
     float all_zoom;
@@ -88,7 +87,6 @@ layout(std140, set = 0, binding = 0) uniform UBO
 #define ub_Rotation       global.Rotation
 
 #include "../../../include/uborder_bezel_reflections_common.inc"
-
 
 #pragma parameter hiscan "          High Resolution Scanlines (prepend a scaler...)" 0.0 0.0 1.0 1.0
 #define hiscan        params.hiscan
@@ -175,6 +173,9 @@ layout(std140, set = 0, binding = 0) uniform UBO
 
 #pragma parameter gamma_c "          Gamma correct" 1.0 0.50 2.0 0.025
 #define gamma_c   params.gamma_c     // adjust brightness
+
+#pragma parameter gamma_c2 "          Complementary Gamma correct" 1.0 1.0 2.0 0.025
+#define gamma_c2   params.gamma_c2     // adjust brightness
 
 #pragma parameter brightboost "          Bright Boost Dark Pixels" 1.40 0.25 10.0 0.05
 #define brightboost  params.brightboost     // adjust brightness
@@ -382,7 +383,6 @@ vec3 plant (vec3 tar, float r)
 }
 
 
-
 void main()
 {
 	vec2 prescalex = vec2(textureSize(LinearizePass, 0)) / global.OriginalSize.xy;
@@ -405,7 +405,7 @@ void main()
 	SourceSize*=vec4(1.0, 1.0/sy, 1.0, sy);
 
 	// Calculating texel coordinates
-
+   
 // Bezels and border begins...
 
     vec2 uvFC = mix(uv, h_warp(uv), global.h_curvature); // Frame content area
