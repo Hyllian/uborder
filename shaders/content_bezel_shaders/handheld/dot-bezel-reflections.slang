@@ -242,7 +242,7 @@ void main()
     {
     	float baoc = 1.0 - global.border_alpha*step(dot(content.rgb, 0.333333.xxx), BLVL(1.0 - global.black_baoc));
 
-        FragColor = vec4(mix(border.rgb, mix(border.rgb, frame_content, baoc), step(fcTex.x*fcTex.y, 1.1)), 1.0);
+        FragColor = vec4(mix(border.rgb, mix(border.rgb, frame_content, baoc), 1.0-step(1.0,fcTex.x*fcTex.y)), 1.0);
 
         return;
     }
