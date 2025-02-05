@@ -4,6 +4,7 @@
 //#reference "base_presets/uborder-bezel-reflections/uborder-bezel-reflections-crt-guest-advanced.slangp"
 //#reference "base_presets/uborder-bezel-reflections/uborder-bezel-reflections-crt-guest-advanced-hd.slangp"
 //#reference "base_presets/uborder-bezel-reflections/uborder-bezel-reflections-crt-guest-advanced-ntsc.slangp"
+//#reference "base_presets/uborder-bezel-reflections/uborder-bezel-reflections-newpixie-crt.slangp"
 
 
 # If you want to use another background texture, change the reference path here.
