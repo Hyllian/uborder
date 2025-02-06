@@ -46,13 +46,13 @@
 #pragma parameter border_mirror_y      "    Border Mirrored"                 0.0  0.0 1.0 1.0
 #pragma parameter border_allow_rot     "    Border Rotation [ 0 <--> 270 ]"  0.0  0.0 3.0 1.0
 #pragma parameter border_alpha         "    Border Alpha Over Content (BAOC)"0.0  0.0 1.0 0.01
-#pragma parameter black_baoc           "    (BAOC) Only On Black Content"    0.0  0.0 1.0 1.0
+#pragma parameter black_baoc           "    (BAOC) Emphasis on Content"      0.0  0.0 1.0 1.0
 #endif
 
 #pragma parameter h_nonono             "HYLLIAN'S CURVATURE:"                1.0  0.0   1.0 1.0
 #pragma parameter h_curvature          "    Curvature Toggle"                1.0  0.0   1.0 1.0
 #pragma parameter h_shape              "    Shape [ Sphere | Cylinder ]"     0.0  0.0   1.0 1.0
-#pragma parameter h_radius             "    Curvature Radius"                4.0  1.5  10.0 0.1
+#pragma parameter h_radius             "    Curvature Radius"                4.0  1.8  10.0 0.1
 #pragma parameter h_cornersize         "    Corner Size"                     0.05 0.01  1.0 0.01
 #pragma parameter h_cornersmooth       "    Corner Smoothness"               0.5  0.1   1.0 0.1
 #pragma parameter h_angle_x            "    Position X"                      0.0 -1.0   1.0 0.001

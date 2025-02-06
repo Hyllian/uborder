@@ -64,7 +64,7 @@ vec2 h_warp(vec2 uv)
 
 #ifdef USE_BEZEL_REFLECTIONS_COMMON
 
-#define BLVL(c) max(abs(c), 1e-2)  // Black Level for Arcade Vector Games
+#define BLVL(c) max(abs(c), 2e-2)  // Black Level for Arcade Vector Games
 #define FIX(c)  max(abs(c), 1e-5);
 #define PI 3.141592653589
 
