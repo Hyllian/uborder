@@ -55,6 +55,8 @@
 #pragma parameter h_radius             "    Curvature Radius"                4.0  1.8  10.0 0.1
 #pragma parameter h_cornersize         "    Corner Size"                     0.05 0.01  1.0 0.01
 #pragma parameter h_cornersmooth       "    Corner Smoothness"               0.5  0.1   1.0 0.1
+#pragma parameter h_x_tilt             "    Horizontal Tilt"                 0.0 -0.5 0.5 0.01
+#pragma parameter h_y_tilt             "    Vertical Tilt"                   0.0 -0.5 0.5 0.01
 #pragma parameter h_angle_x            "    Position X"                      0.0 -1.0   1.0 0.001
 #pragma parameter h_angle_y            "    Position Y"                      0.0 -1.0   1.0 0.001
 #pragma parameter h_overscan_x         "    Overscan X%"                   100.0 20.0 200.0 0.2

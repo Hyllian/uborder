@@ -89,6 +89,8 @@ layout(std140, set = 0, binding = 0) uniform UBO
     float h_cornersmooth;
     float h_overscan_x;
     float h_overscan_y;
+    float h_x_tilt;
+    float h_y_tilt;
     float h_angle_x;
     float h_angle_y;
     float h_curvature;

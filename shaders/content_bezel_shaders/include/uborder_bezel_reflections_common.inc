@@ -30,6 +30,7 @@ vec2  max_size     = vec2(sqrt( (r2 - 2.0) / (r2 - 1.0) ), 1.0);
 vec2  aspect       = vec2(1.0, OutputRotSize.y/OutputRotSize.x);
 float cornersize   = global.h_cornersize * min(aspect.x, aspect.y);
 float cornersmooth = global.h_cornersmooth/100.0;
+vec2  tilt         = global.h_radius*sin(get_rotated_vector(vec2(global.h_x_tilt, global.h_y_tilt), ub_Rotation));
 
 const vec2  middle = 0.5.xx;
 
@@ -54,8 +55,10 @@ float h_corner(vec2 uv)
 
 vec2 h_warp(vec2 uv)
 {
-    vec2 cylinder = sqrt( (r2 - uv.x*uv.x) / (r2 - 2.0*uv.x*uv.x) )*max_size;
-    float sphere   =  sqrt( (r2 - 1.0) / ( r2 - dot(uv, uv) ) );
+    vec2 uvt = uv + tilt;
+
+    vec2 cylinder = sqrt( (r2 - uvt.x*uvt.x) / (r2 - 2.0*uvt.x*uvt.x) )*max_size;
+    float sphere   =  sqrt( (r2 - 1.0) / ( r2 - dot(uvt, uvt) ) );
 
     uv *= mix(sphere.xx, cylinder, global.h_shape);
 
