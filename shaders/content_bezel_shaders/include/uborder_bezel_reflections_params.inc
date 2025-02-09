@@ -17,6 +17,7 @@
 #pragma parameter bz_lights            "    Lights  [ OUT | ON ]"            1.0   0.0   1.0  1.0
 #pragma parameter bz_shine_enable      "    Shine   [ OFF | ON ]"            1.0   0.0   1.0  1.0
 #pragma parameter bz_ambient_enable    "    Ambient [ OFF | ON ]"            1.0   0.0   1.0  1.0
+#pragma parameter bz_blur_iter         "    Reflection Quality/Performance"  5.0   5.0  32.0  1.0
 #pragma parameter bz_ref_str           "    Reflection Strength"             0.25  0.0   1.0  0.01
 #pragma parameter bz_inner_bezel_x     "    Bezel Inner Width"               0.1   0.0   1.0  0.001
 #pragma parameter bz_inner_bezel_y     "    Bezel Inner Height"              0.1   0.0   1.0  0.001
@@ -66,6 +67,7 @@
 #ifdef USE_BEZEL_REFLECTIONS_COMMON
 #define bz_shine       global.bz_shine
 #define bz_ambient     global.bz_ambient
+#define bz_blur_iter   global.bz_blur_iter
 #define bz_ref_str     global.bz_ref_str
 #define bz_lights      global.bz_lights
 #define bz_ref_dist    global.bz_ref_dist

@@ -30,6 +30,8 @@ layout(push_constant) uniform Push
 	slotmask, slotmask1, slotwidth, double_slot, mcut, maskDark, maskLight, maskstr, mshift, mask_layout, mask_bloom, hiscan, pr_scan;
 } params;
 
+#define USE_BEZEL_REFLECTIONS_COMMON
+
 layout(std140, set = 0, binding = 0) uniform UBO
 {
 	mat4 MVP;
@@ -83,65 +85,10 @@ layout(std140, set = 0, binding = 0) uniform UBO
 	float mzoom_sh;
 	float mclip;
 
-    uint Rotation;
+#include "../../../include/uborder_bezel_reflections_global_declarations.inc"
 
-    float all_zoom;
-
-    float fr_zoom;
-    float fr_aspect_x;
-    float fr_aspect_y;
-    float fr_center_x;
-    float fr_center_y;
-    float fr_i_scaling;
-    float fr_i_scaling_fac;
-
-    float h_shape;
-    float h_radius;
-    float h_cornersize;
-    float h_cornersmooth;
-    float h_overscan_x;
-    float h_overscan_y;
-    float h_x_tilt;
-    float h_y_tilt;
-    float h_angle_x;
-    float h_angle_y;
-    float h_curvature;
-
-    float bz_shine_enable;
-    float bz_shine;
-    float bz_shine_size;
-    float bz_ambient_enable;
-    float bz_ambient;
-    float bz_ambient_size;
-    float bz_ref_str;
-    float bz_lights;
-    float bz_transparent;
-    float bz_inner_bezel_x;
-    float bz_inner_bezel_y;
-    float bz_middle_bezel_x;
-    float bz_middle_bezel_y;
-    float bz_outer_bezel_x;
-    float bz_outer_bezel_y;
-    float bz_outer_curve;
-    float bz_ref_dist;
-    float bz_radius;
-    float bz_red;
-    float bz_green;
-    float bz_blue;
-    float bz_ang;
-    float bz_pos;
-
-    float border_scale;
-    float border_center_x;
-    float border_center_y;
-    float border_mirror_y;
-    float border_allow_rot;
-    float border_alpha;
-    float ub_border_top;
-    float black_baoc;
 } global;
 
-#define USE_BEZEL_REFLECTIONS_COMMON
 
 #include "../../../include/uborder_bezel_reflections_params.inc"
 

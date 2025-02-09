@@ -55,29 +55,7 @@ layout(std140, set = 0, binding = 0) uniform UBO
 	float bmask1;
 	float hmask1;
 
-    uint Rotation;
-
-    float all_zoom;
-
-    float fr_zoom;
-    float fr_aspect_x;
-    float fr_aspect_y;
-    float fr_center_x;
-    float fr_center_y;
-    float fr_i_scaling;
-    float fr_i_scaling_fac;
-
-    float h_shape;
-    float h_radius;
-    float h_cornersize;
-    float h_cornersmooth;
-    float h_overscan_x;
-    float h_overscan_y;
-    float h_x_tilt;
-    float h_y_tilt;
-    float h_angle_x;
-    float h_angle_y;
-    float h_curvature;
+#include "../../../include/uborder_bezel_reflections_global_declarations.inc"
 
 } global;
 

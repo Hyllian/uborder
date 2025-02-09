@@ -71,7 +71,6 @@ vec2 h_warp(vec2 uv)
 #define FIX(c)  max(abs(c), 1e-5);
 #define PI 3.141592653589
 
-#define R_BLUR_ITER 5
 #define R_BLUR_SIZE 0.02
 
 float shine_size = (1.0 - global.bz_shine_size  );

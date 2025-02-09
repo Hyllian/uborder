@@ -70,12 +70,17 @@ void main()
     vec2 uvR = ReflectionCoords(uvFC, bz_ref_dist);
 
     vec3 Blur = 0.0.xxx;
-    float fsm = 1.0 - fsmoothstep(0.8, 1.0, abs(uvFC.x))*fsmoothstep(0.8, 1.0, abs(uvFC.y));
 
-    for(int i = 0; i < R_BLUR_ITER; i++)
+    for(int i = 0; i < bz_blur_iter; i++)
         Blur += texture(ReflexSrc, uvR + (vec2(rand(uvR+float(i)),rand(uvR+float(i)+0.00625))-0.5)*R_BLUR_SIZE).rgb;
 
-    Blur *= (fsm * bz_ref_str / float(R_BLUR_ITER));
+    Blur /= bz_blur_iter;
+
+    // Blur in cheap linear gamma (2.0)
+    Blur = sqrt(Blur);
+
+    Blur *= ((1.0 - fsmoothstep(0.8, 1.0, abs(uvFC.x))*fsmoothstep(0.8, 1.0, abs(uvFC.y))) * bz_ref_str );
+
 
     // This is a hack. Still needs analytical solution.
     vec2 IB = abs(uvIB);
