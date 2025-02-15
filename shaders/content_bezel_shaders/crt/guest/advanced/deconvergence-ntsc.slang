@@ -3,10 +3,10 @@
 /*
    CRT - Guest - Advanced
    
-   Copyright (C) 2018-2023 guest(r) - guest.r@gmail.com
+   Copyright (C) 2018-2025 guest(r)
 
    Incorporates many good ideas and suggestions from Dr. Venom.
-   I would also like give thanks to many Libretro forums members for continuous feedback, suggestions and caring about the shader.
+   I would also like give thanks to many Libretro forums members for continuous feedback, suggestions and using the shader.
    
    This program is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License
@@ -84,6 +84,8 @@ layout(std140, set = 0, binding = 0) uniform UBO
 	float hmask1;
 	float mzoom_sh;
 	float mclip;
+	float maskmid;
+	float edgemask;	
 
 #include "../../../include/uborder_bezel_reflections_global_declarations.inc"
 
@@ -258,6 +260,12 @@ layout(std140, set = 0, binding = 0) uniform UBO
 
 #pragma parameter pr_scan "          Preserve Scanline Strength" 0.10 0.0 1.0 0.025
 #define pr_scan  params.pr_scan
+
+#pragma parameter maskmid "          Mitigate Mask on Mid-Colors" 0.0 0.0 1.0 0.05
+#define maskmid  global.maskmid
+
+#pragma parameter edgemask "          Mitigate Mask on Edges" 0.0 0.0 1.0 0.10
+#define edgemask  global.edgemask
 
 #pragma parameter gamma_out "          Gamma out" 1.95 1.0 5.0 0.05
 #define gamma_out    global.gamma_out     // output gamma
@@ -729,7 +737,8 @@ if ((abs(global.deconrr) + abs(global.deconrry) + abs(global.deconrg) + abs(glob
 	float mx2 = COMPAT_TEXTURE(Source, pos1 + dx).a;
 	float mxg = max(max(mx0,mx1),max(mx2,cm));
 	float mx = pow(mxg, 1.40/gamma_in);
-
+	float cx = pow(colmx, 1.4/gamma_in);
+	
 	// mask boost tweak
 	
 	dx = vec2(global.OriginalSize.z, 0.0)*0.25;
@@ -754,7 +763,7 @@ if ((abs(global.deconrr) + abs(global.deconrry) + abs(global.deconrg) + abs(glob
 
 if (shadowMask > -0.5)
 {	
-	vec2 maskcoord = gl_FragCoord.xy * 1.00001;
+	vec2 maskcoord = gl_FragCoord.xy;
 	vec2 scoord = maskcoord;
 	
 	mwidth = floor(mwidth) * masksize;
@@ -810,6 +819,8 @@ else{
 
 	cmask  = min(cmask, 1.0);
 	cmask1 = min(cmask1, 1.0);
+	
+	float mm = max(-2.75*cx*(cx-1.0)-mix(0.075, 0.165, cx), 0.0); color = max(color, orig1*maskmid*mm);
 }
 
 	float dark_compensate  = mix(max( clamp( mix (mcut, maskstr, mx),0.0, 1.0) - 1.0 + mask_compensate, 0.0) + 1.0, 1.0, mx); if(shadowMask < -0.5) dark_compensate = 1.0;
@@ -821,8 +832,8 @@ else{
 	float vig  = COMPAT_TEXTURE(PrePass0, clamp(pos, 0.0+0.5*global.OriginalSize.zw, 1.0-0.5*global.OriginalSize.zw)).a;
 
 	vec3 Bloom1 = Bloom;
-	vec3 bcmask = mix(one, cmask, bmask1);
-	vec3 hcmask = mix(one, cmask, hmask1);
+	vec3 bcmask = mix(one, cmask1, bmask1);
+	vec3 hcmask = mix(one, cmask1, hmask1);
 
 	if (abs(bloom) > 0.025)
 	{
@@ -871,6 +882,12 @@ else{
 	else { vec3 cmaskg = clamp(mix(one, cmask1, global.m_glow_mask),0.0, 1.0); color = color + abs(glow)*cmaskg*Glow; }
 
 	color = min(color, 1.0);
+
+	if (edgemask > 0.05) {
+		mx0 = COMPAT_TEXTURE(Source, pos1 - 0.625*dx).a;
+		mx2 = COMPAT_TEXTURE(Source, pos1 + 0.625*dx).a;
+		mb = (1.0 - min(abs(mx0-mx2)/(0.5+mx1), 1.0));
+		color = min(color + mix(2.0*edgemask*(1.0001-mb*mb)*(1.0-colmx)*orig1, 0.0.xxx, max(cx*color,cmask1)), max(color, mix(cmask1,one,0.90*pow(cx,0.75)))); }
 
 	color = color * mix(1.0, mix(0.5*(1.0+w3), w3, mx), pr_scan);  // preserve scanlines
 	
