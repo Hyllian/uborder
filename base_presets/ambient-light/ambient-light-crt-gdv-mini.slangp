@@ -8,7 +8,7 @@ filter_linear0 = "true"
 scale_type0 = "source"
 scale0 = "1.000000"
 
-shader1 = "../../shaders/support_shaders/ambient-light.slang"
+shader1 = "../../shaders/support_shaders/ambient-light-old.slang"
 filter_linear1 = "true"
 wrap_mode1 = "clamp_to_border"
 mipmap_input1 = "true"

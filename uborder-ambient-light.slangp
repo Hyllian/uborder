@@ -1,0 +1,18 @@
+# If you want to use another base preset, change the reference path here.
+
+
+#reference "base_presets/uborder-ambient-light/uborder-ambient-light-crt-nobody.slangp"
+//#reference "base_presets/uborder-ambient-light/uborder-ambient-light-crt-guest-advanced.slangp"
+//#reference "base_presets/uborder-ambient-light/uborder-ambient-light-crt-guest-advanced-hd.slangp"
+//#reference "base_presets/uborder-ambient-light/uborder-ambient-light-crt-guest-advanced-ntsc.slangp"
+//#reference "base_presets/uborder-ambient-light/uborder-ambient-light-newpixie-crt.slangp"
+//#reference "base_presets/uborder-ambient-light/vector/vector.slangp"
+//#reference "base_presets/uborder-ambient-light/crt/crt-geom.slangp"
+//#reference "base_presets/uborder-ambient-light/crt/crt-hyllian-sinc.slangp"
+
+# If you want to use another background texture, change the reference path here.
+# Notice that any other extra presets called will override this background if BORDER
+# is defined there with other background.
+
+BORDER = "textures/borders/default.jpg"
+

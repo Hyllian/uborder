@@ -14,6 +14,12 @@ void main()
     vec4 border = texture(BORDER, border_uv);
 
     border.rgb *= (bz_lights > 0.5) ? 1.0 : 0.5;
+
+#ifdef USE_AMBIENT_LIGHT
+    vec3 ambi   = texture(AMBI, border_uv).rgb;
+    border.rgb = border.rgb*(ambi + 0.5.xxx);
+#endif
+
     if (area_out.y < 1.0) {FragColor = vec4(border.rgb, 1.0); return;}
 
 // Bezels pause...

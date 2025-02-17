@@ -6,7 +6,7 @@ layout(push_constant) uniform Push
 } param;
 
 #pragma parameter feed_nonono       "FEEDBACK:"               0.0  0.0 1.0 1.0
-#pragma parameter mixfactor         "    Motionblur Fadeout"  0.75 0.0 1.0 0.01
+#pragma parameter mixfactor         "    Ambient-Light Fadeout"  0.75 0.0 1.0 0.01
 
 layout(std140, set = 0, binding = 0) uniform UBO
 {

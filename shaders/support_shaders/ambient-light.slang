@@ -42,7 +42,7 @@ layout(set = 0, binding = 2) uniform sampler2D Source;
 void main()
 {
     vec4 background;
-    vec4 color = texture(Source, vTexCoord, 10.0) * 1.25 + 0.125; // use mipmapping to get an average of the entire screen
+    vec4 color = texture(Source, vTexCoord, 8.0) * 1.25 + 0.125; // use mipmapping to get an average of the entire screen
 
     background = clamp(color * color * params.AG_effect, 0.0, 1.0);
 
