@@ -16,8 +16,8 @@ void main()
     border.rgb *= (bz_lights > 0.5) ? 1.0 : 0.5;
 
 #ifdef USE_AMBIENT_LIGHT
-    vec3 ambi   = texture(AMBI, border_uv).rgb;
-    border.rgb = border.rgb*(ambi + 0.5.xxx);
+    vec3 ambi   = texture(ambi_temporal_pass, border_uv).rgb;
+    border.rgb = border.rgb*(ambi + (global.border_weight).xxx);
 #endif
 
     if (area_out.y < 1.0) {FragColor = vec4(border.rgb, 1.0); return;}

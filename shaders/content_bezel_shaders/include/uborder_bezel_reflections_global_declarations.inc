@@ -57,4 +57,5 @@
     float ub_border_top;
     float border_alpha;
     float black_baoc;
+    float border_weight;
 #endif

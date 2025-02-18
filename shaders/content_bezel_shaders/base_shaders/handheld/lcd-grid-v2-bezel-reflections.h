@@ -95,7 +95,7 @@ layout(location = 0) out vec4 FragColor;
 layout(set = 0, binding = 2) uniform sampler2D Source;
 layout(set = 0, binding = 3) uniform sampler2D BORDER;
 #ifdef USE_AMBIENT_LIGHT
-layout(set = 0, binding = 4) uniform sampler2D AMBI;
+layout(set = 0, binding = 4) uniform sampler2D ambi_temporal_pass;
 #endif
 // integral of (1 - x^2 - x^4 + x^6)^2
 float coeffs_x[7] = float[](1.0, -2.0/3.0, -1.0/5.0, 4.0/7.0, -1.0/9.0, -2.0/11.0, 1.0/13.0);

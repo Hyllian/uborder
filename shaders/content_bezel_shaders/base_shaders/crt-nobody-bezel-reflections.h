@@ -1,4 +1,3 @@
-//#version 450
 
 /*
    Uborder-bezels-reflections shader - Hyllian 2025.
@@ -60,11 +59,9 @@ layout(std140, set = 0, binding = 0) uniform UBO
     vec4 OutputSize;
     uint FrameCount;
 
-
 #include "../include/uborder_bezel_reflections_global_declarations.inc"
 
 } global;
-
 
 
 #include "../include/uborder_bezel_reflections_params.inc"
@@ -169,7 +166,7 @@ layout(location = 0) out vec4 FragColor;
 layout(set = 0, binding = 2) uniform sampler2D Source;
 layout(set = 0, binding = 3) uniform sampler2D BORDER;
 #ifdef USE_AMBIENT_LIGHT
-layout(set = 0, binding = 4) uniform sampler2D AMBI;
+layout(set = 0, binding = 4) uniform sampler2D ambi_temporal_pass;
 #endif
 
 /* Mask code pasted from subpixel_masks.h. Masks 3 and 4 added. */

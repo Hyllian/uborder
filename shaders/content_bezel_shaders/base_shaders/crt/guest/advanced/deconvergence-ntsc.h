@@ -348,7 +348,7 @@ layout(set = 0, binding = 6) uniform sampler2D PrePass0;
 layout(set = 0, binding = 7) uniform sampler2D Source;
 layout(set = 0, binding = 8) uniform sampler2D BORDER;
 #ifdef USE_AMBIENT_LIGHT
-layout(set = 0, binding = 9) uniform sampler2D AMBI;
+layout(set = 0, binding = 9) uniform sampler2D ambi_temporal_pass;
 #endif
 
 #define eps 1e-10 

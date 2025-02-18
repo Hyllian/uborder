@@ -12,7 +12,7 @@
 #pragma parameter all_nonono           "ALL:"                                0.0    0.0   1.0 1.0
 #pragma parameter all_zoom             "    Zoom %"                        100.0   20.0 200.0 1.0
 
-#ifdef USE_BEZEL_REFLECTIONS_COMMON
+//#ifdef USE_BEZEL_REFLECTIONS_COMMON
 #pragma parameter bz_nonono            "BEZEL:"                              0.0   0.0   1.0  1.0
 #pragma parameter bz_lights            "    Lights  [ OUT | ON ]"            1.0   0.0   1.0  1.0
 #pragma parameter bz_shine_enable      "    Shine   [ OFF | ON ]"            1.0   0.0   1.0  1.0
@@ -48,7 +48,8 @@
 #pragma parameter border_allow_rot     "    Border Rotation [ 0 <--> 270 ]"  0.0  0.0 3.0 1.0
 #pragma parameter border_alpha         "    Border Alpha Over Content (BAOC)"0.0  0.0 1.0 0.01
 #pragma parameter black_baoc           "    (BAOC) Emphasis on Content"      0.0  0.0 1.0 1.0
-#endif
+#pragma parameter border_weight        "    Border to Ambient-Light Weight"  0.5  0.0 1.0 0.05
+//#endif
 
 #pragma parameter h_nonono             "HYLLIAN'S CURVATURE:"                1.0  0.0   1.0 1.0
 #pragma parameter h_curvature          "    Curvature Toggle"                1.0  0.0   1.0 1.0

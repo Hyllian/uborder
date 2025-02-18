@@ -141,7 +141,7 @@ layout(set = 0, binding = 3) uniform sampler2D accum1;
 layout(set = 0, binding = 4) uniform sampler2D blur2;
 layout(set = 0, binding = 5) uniform sampler2D BORDER;
 #ifdef USE_AMBIENT_LIGHT
-layout(set = 0, binding = 6) uniform sampler2D AMBI;
+layout(set = 0, binding = 6) uniform sampler2D ambi_temporal_pass;
 #endif
 // Why 'resolution' if you don't need!? :P
 //vec3 tsample( sampler2D samp, vec2 tc, float offs, vec2 resolution )

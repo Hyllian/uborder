@@ -172,7 +172,7 @@ layout(location = 0) out vec4 FragColor;
 layout(set = 0, binding = 2) uniform sampler2D Source;
 layout(set = 0, binding = 3) uniform sampler2D BORDER;
 #ifdef USE_AMBIENT_LIGHT
-layout(set = 0, binding = 4) uniform sampler2D AMBI;
+layout(set = 0, binding = 4) uniform sampler2D ambi_temporal_pass;
 #endif
 
 vec3 get_content(vec2 vTex, vec2 uv)

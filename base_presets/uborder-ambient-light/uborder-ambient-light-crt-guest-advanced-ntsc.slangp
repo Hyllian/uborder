@@ -12,7 +12,7 @@ shader1 = "../../shaders/support_shaders/ambient-light.slang"
 filter_linear1 = "true"
 wrap_mode1 = "clamp_to_border"
 mipmap_input1 = "true"
-alias1 = "AMBI"
+alias1 = "ambi_temporal_pass"
 scale_type1 = "source"
 scale1 = "4.000000"
 
