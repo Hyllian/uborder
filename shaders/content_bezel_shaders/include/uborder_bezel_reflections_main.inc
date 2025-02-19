@@ -77,7 +77,7 @@ void main()
 
     vec3 Blur = 0.0.xxx;
 
-    for(int i = 0; i < bz_blur_iter; i++)
+    for(int i = 0; i < clamp(bz_blur_iter, 5.0, 32.0); i++) // clamp needed to fix D3D compatibility
         Blur += texture(ReflexSrc, uvR + (vec2(rand(uvR+float(i)),rand(uvR+float(i)+0.00625))-0.5)*R_BLUR_SIZE).rgb;
 
     Blur /= bz_blur_iter;

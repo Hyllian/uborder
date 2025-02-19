@@ -178,7 +178,7 @@ scale_type20 = viewport
 scale_x20 = 1.0
 scale_y20 = 1.0
 
-shader21 = "../../shaders/content_ambient_light/crt/guest/advanced/deconvergence-ntsc.slang"
+shader21 = "../../shaders/content_koko_ambi/crt/guest/advanced/deconvergence-ntsc.slang"
 filter_linear21 = true
 scale_type21 = viewport
 scale_x21 = 1.0

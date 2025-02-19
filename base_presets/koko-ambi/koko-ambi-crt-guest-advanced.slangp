@@ -1,7 +1,6 @@
-# uborder-koko-ambi
+# koko-ambi-crt
 
-shaders = "16"
-
+shaders = "17"
 
        shader0 = "../../shaders/support_shaders/koko-ambi-standalone/0_koko-ambi-stock.slang"
 filter_linear0 = true
@@ -19,7 +18,7 @@ filter_linear1 = true
     wrap_mode1 = "mirrored_repeat"
 
        shader2 = "../../shaders/support_shaders/koko-ambi-standalone/2_koko-ambi-temporal.slang"
-        alias2 = ambi_temporal_pass
+        alias2 = "ambi_temporal_pass"
 filter_linear2 = true
  mipmap_input2 = false
    scale_type2 = source
@@ -33,10 +32,8 @@ mipmap_input3 = "false"
 alias3 = "OriginalFake"
 float_framebuffer3 = "false"
 srgb_framebuffer3 = "false"
-scale_type_x3 = "source"
-scale_x3 = "1.000000"
-scale_type_y3 = "source"
-scale_y3 = "1.000000"
+scale_type3 = source
+scale3 = 1.0
 
 shader4 = "../../../../crt/shaders/guest/advanced/stock.slang"
 filter_linear4 = false
@@ -49,7 +46,7 @@ scale_type5 = source
 scale5 = 1.0
 alias5 = StockPass
 
-shader6 = "../../shaders/content_bezel_shaders/crt/guest/advanced/afterglow0.slang"
+shader6 = "../../shaders/content_shaders/crt/guest/advanced/afterglow0.slang"
 filter_linear6 = false
 scale_type6 = source
 scale6 = 1.0
@@ -62,14 +59,14 @@ mipmap_input7 = true
 scale7 = 1.0
 alias7 = PrePass
 
-textures = "SamplerLUT1;SamplerLUT2;SamplerLUT3;SamplerLUT4;BORDER"
-SamplerLUT1 = "../../../../crt/shaders/guest/advanced/lut/trinitron-lut.png
+textures = "SamplerLUT1;SamplerLUT2;SamplerLUT3;SamplerLUT4"
+SamplerLUT1 = "../../../../crt/shaders/guest/advanced/lut/trinitron-lut.png"
 SamplerLUT1_linear = true
-SamplerLUT2 = "../../../../crt/shaders/guest/advanced/lut/inv-trinitron-lut.png
+SamplerLUT2 = "../../../../crt/shaders/guest/advanced/lut/inv-trinitron-lut.png"
 SamplerLUT2_linear = true
-SamplerLUT3 = "../../../../crt/shaders/guest/advanced/lut/nec-lut.png
+SamplerLUT3 = "../../../../crt/shaders/guest/advanced/lut/nec-lut.png"
 SamplerLUT3_linear = true
-SamplerLUT4 = "../../../../crt/shaders/guest/advanced/lut/ntsc-lut.png
+SamplerLUT4 = "../../../../crt/shaders/guest/advanced/lut/ntsc-lut.png"
 SamplerLUT4_linear = true 
 
 shader8 = "../../../../crt/shaders/guest/advanced/avg-lum.slang"
@@ -120,39 +117,32 @@ scale_y13 = 1.0
 float_framebuffer13 = true
 alias13 = BloomPass
 
-shader14 = "../../shaders/content_bezel_shaders/crt/guest/advanced/crt-guest-advanced.slang"
+shader14 = "../../shaders/content_shaders/crt/guest/advanced/crt-guest-advanced.slang"
 filter_linear14 = true
 float_framebuffer14 = true
 scale_type14 = viewport
 scale_x14 = 1.0
 scale_y14 = 1.0
 
-shader15 = "../../shaders/content_koko_ambi/crt/guest/advanced/deconvergence.slang"
+shader15 = "../../shaders/content_shaders/crt/guest/advanced/deconvergence.slang"
 filter_linear15 = true
 scale_type15 = viewport
+alias15 = "CRTPass"
 scale_x15 = 1.0
 scale_y15 = 1.0
 
-BORDER = "../../textures/borders/default.jpg"
-BORDER_linear = "true"
-BORDER_wrap_mode = "clamp_to_border"
-BORDER_mipmap = "false"
+shader16 = "../../shaders/uborder.slang"
+filter_linear16 = "true"
+wrap_mode16 = "clamp_to_border"
+scale_type16 = "viewport"
+scale16 = "1.000000"
 
-mixfactor = "0.980000"
 
-fr_zoom = "37.800000"
-fr_i_scaling_fac = "0.000000"
-bz_ref_str = "0.350000"
-bz_inner_bezel_x = "0.000000"
-bz_inner_bezel_y = "0.000000"
-bz_middle_bezel_x = "0.060000"
-bz_middle_bezel_y = "0.037000"
-bz_outer_bezel_x = "0.000000"
-bz_outer_bezel_y = "0.000000"
-bz_radius = "0.015000"
-bz_red = "50.000000"
-bz_green = "50.000000"
-bz_blue = "50.000000"
-bz_shine = "0.150000"
-bz_shine_size = "0.850000"
-h_cornersize = "0.020000"
+mixfactor = "0.950000"
+AG_effect = "1.300000"
+geom_curvature = "1.000000"
+geom_R = "4.000000"
+geom_d = "1.000000"
+geom_cornersize = "0.016000"
+geom_cornersmooth = "280.000000"
+ub_border_top = "0.000000"

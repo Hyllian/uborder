@@ -37,7 +37,7 @@ scale_x3 = "1.000000"
 scale_type_y3 = "source"
 scale_y3 = "1.000000"
 
-shader4 = "../../../shaders/content_ambient_light/handheld/lcd-grid-v2.slang"
+shader4 = "../../../shaders/content_koko_ambi/handheld/lcd-grid-v2.slang"
 filter_linear4 = "false"
 wrap_mode4 = "clamp_to_border"
 mipmap_input4 = "false"

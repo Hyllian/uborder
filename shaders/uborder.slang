@@ -55,12 +55,12 @@ layout(location = 0) in vec2 vTexCoord;
 layout(location = 1) in vec2 border_uv;
 layout(location = 0) out vec4 FragColor;
 layout(set = 0, binding = 2) uniform sampler2D CRTPass;
-layout(set = 0, binding = 3) uniform sampler2D BORDER;
+layout(set = 0, binding = 3) uniform sampler2D ambi_temporal_pass;
 
 
 void main()
 {
-    vec4 border = texture( BORDER, border_uv);
+    vec4 border = texture(ambi_temporal_pass, border_uv);
     vec4 frame  = texture(CRTPass, vTexCoord);
 
     vec4 color = mix(mix(border, frame, frame.a), mix(frame, border, border.a), params.ub_border_top);

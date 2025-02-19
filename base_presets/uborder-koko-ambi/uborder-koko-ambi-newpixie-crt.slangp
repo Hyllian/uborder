@@ -38,7 +38,7 @@ scale_type_y3 = "source"
 scale_y3 = "1.000000"
 
 
-shader4 = "../../shaders/content_ambient_light/crt/newpixie/accumulate.slang"
+shader4 = "../../shaders/content_koko_ambi/crt/newpixie/accumulate.slang"
 alias4 = accum1
 scale4 = 1.0
 scale_type4 = source
@@ -56,7 +56,7 @@ scale_6 = 1.0
 scale_type6 = source
 filter_linear6 = true
 
-shader7 = "../../shaders/content_ambient_light/crt/newpixie/newpixie-crt.slang"
+shader7 = "../../shaders/content_koko_ambi/crt/newpixie/newpixie-crt.slang"
 filter_linear7 = true
 scale_type7 = viewport
 

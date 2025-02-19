@@ -1,6 +1,6 @@
-# uborder-koko-ambi
+# koko-ambi-crt
 
-shaders = "5"
+shaders = "6"
 
        shader0 = "../../shaders/support_shaders/koko-ambi-standalone/0_koko-ambi-stock.slang"
 filter_linear0 = true
@@ -18,7 +18,7 @@ filter_linear1 = true
     wrap_mode1 = "mirrored_repeat"
 
        shader2 = "../../shaders/support_shaders/koko-ambi-standalone/2_koko-ambi-temporal.slang"
-        alias2 = ambi_temporal_pass
+        alias2 = "ambi_temporal_pass"
 filter_linear2 = true
  mipmap_input2 = false
    scale_type2 = source
@@ -32,15 +32,14 @@ mipmap_input3 = "false"
 alias3 = "OriginalFake"
 float_framebuffer3 = "false"
 srgb_framebuffer3 = "false"
-scale_type_x3 = "source"
-scale_x3 = "1.000000"
-scale_type_y3 = "source"
-scale_y3 = "1.000000"
+scale_type3 = source
+scale3 = 1.0
 
-shader4 = "../../shaders/content_koko_ambi/crt-nobody.slang"
-filter_linear4 = "true"
+shader4 = "../../shaders/content_shaders/crt-geom.slang"
+filter_linear4 = "false"
 wrap_mode4 = "clamp_to_border"
 mipmap_input4 = "false"
+alias4 = "CRTPass"
 float_framebuffer4 = "false"
 srgb_framebuffer4 = "false"
 scale_type_x4 = "viewport"
@@ -48,32 +47,22 @@ scale_x4 = "1.000000"
 scale_type_y4 = "viewport"
 scale_y4 = "1.000000"
 
-textures = "BORDER"
-BORDER = "../../textures/borders/default.jpg"
-BORDER_linear = "true"
-BORDER_wrap_mode = "clamp_to_border"
-BORDER_mipmap = "false"
+shader5 = "../../shaders/uborder.slang"
+filter_linear5 = "true"
+wrap_mode5 = "clamp_to_border"
+mipmap_input5 = "false"
+alias5 = ""
+float_framebuffer5 = "false"
+srgb_framebuffer5 = "false"
+scale_type_x5 = "viewport"
+scale_x5 = "1.000000"
+scale_type_y5 = "viewport"
+scale_y5 = "1.000000"
 
-mixfactor = "0.980000"
 
-fr_zoom = "37.800000"
-fr_i_scaling_fac = "0.000000"
-bz_ref_str = "0.350000"
-bz_inner_bezel_x = "0.000000"
-bz_inner_bezel_y = "0.000000"
-bz_middle_bezel_x = "0.060000"
-bz_middle_bezel_y = "0.037000"
-bz_outer_bezel_x = "0.000000"
-bz_outer_bezel_y = "0.000000"
-bz_radius = "0.015000"
-bz_red = "50.000000"
-bz_green = "50.000000"
-bz_blue = "50.000000"
-bz_shine = "0.150000"
-bz_shine_size = "0.850000"
-h_cornersize = "0.020000"
-
-CN_SCAN_SIZE = "0.950000"
-CN_MASK_STRENGTH = "0.500000"
-CN_VIG_TOGGLE = "1.000000"
-CN_VIG_EXP = "0.320000"
+geom_curvature = "1.000000"
+geom_R = "4.000000"
+geom_d = "1.000000"
+geom_cornersize = "0.016000"
+geom_cornersmooth = "280.000000"
+ub_border_top = "0.000000"

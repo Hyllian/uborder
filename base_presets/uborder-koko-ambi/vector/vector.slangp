@@ -45,7 +45,7 @@ alias4 = "glow_trails_refpass"
 scale_type4 = viewport
 scale4 = 1.0
 
-shader5 = "../../../shaders/content_ambient_light/vector/glow-trails0.slang"
+shader5 = "../../../shaders/content_koko_ambi/vector/glow-trails0.slang"
 filter_linear5 = false
 scale_type5 = source
 scale5 = 1.0
@@ -61,7 +61,7 @@ shader7 = "../../../../../crt/shaders/glow-trails/glow-trails1.slang"
 filter_linear7 = true
 srgb_framebuffer7 = "true"
 
-shader8 = "../../../shaders/content_ambient_light/vector/stock.slang"
+shader8 = "../../../shaders/content_koko_ambi/vector/stock.slang"
 filter_linear8 = "true"
 
 

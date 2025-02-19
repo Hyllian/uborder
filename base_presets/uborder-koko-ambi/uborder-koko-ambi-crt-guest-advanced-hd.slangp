@@ -129,7 +129,7 @@ scale_type14 = viewport
 scale_x14 = 1.0
 scale_y14 = 1.0
 
-shader15 = "../../shaders/content_ambient_light/crt/guest/hd/deconvergence-hd.slang"
+shader15 = "../../shaders/content_koko_ambi/crt/guest/hd/deconvergence-hd.slang"
 filter_linear15 = true
 scale_type15 = viewport
 scale_x15 = 1.0
