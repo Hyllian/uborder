@@ -886,10 +886,11 @@ else{
 	color = min(color, 1.0);
 
 	if (edgemask > 0.05) {
-		mx0 = COMPAT_TEXTURE(Source, pos1 - 0.625*dx).a;
-		mx2 = COMPAT_TEXTURE(Source, pos1 + 0.625*dx).a;
-		mb = (1.0 - min(abs(mx0-mx2)/(0.5+mx1), 1.0));
-		color = min(color + mix(2.0*edgemask*(1.0001-mb*mb)*(1.0-colmx)*orig1, 0.0.xxx, max(cx*color,cmask1)), max(color, mix(cmask1,one,0.90*pow(cx,0.75)))); }
+		mx0 = COMPAT_TEXTURE(Source, pos1 - dx).a; mx0 = COMPAT_TEXTURE(Source, pos1 - dx*(1.0-sqrt(mx0))).a; 
+		mx2 = COMPAT_TEXTURE(Source, pos1 + dx).a; mx2 = COMPAT_TEXTURE(Source, pos1 + dx*(1.0-sqrt(mx2))).a; 
+		mb = (1.0 - abs(pow(mx0,0.325)-pow(mx2,0.325)));
+		mb = edgemask*(1.0001-mb*mb)*(1.25-colmx);
+		color = color + mix(2.25*mb*orig1, 0.0.xxx, color); }
 
 	color = color * mix(1.0, mix(0.5*(1.0+w3), w3, mx), pr_scan);  // preserve scanlines
 	
