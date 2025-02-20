@@ -4,14 +4,16 @@ void main()
 
     vec2 uvFC = mix(uv, h_warp(uv), global.h_curvature); // Frame content area
     vec2 uvIB = uvFC;                                    // Inner bezel area
-    vec2 uvMB = mix(uv, uvFC, global.bz_outer_curve);    // In Between bezel area
-    vec2 uvOB = uv;                                    // Outer bezel area
+    vec2 uvMB = mix(bezel_uv, h_warp(bezel_uv), global.bz_outer_curve);    // In Between bezel area
+    vec2 uvOB = bezel_uv;                                    // Outer bezel area
 
     uvFC = uvFC*overscan - content_position;
 
     vec2 area_out = RoundedRectVec(vec4(uvMB, uvOB), vec4(MID_BZ, OUT_BZ), bz_r.xx, vec2(SMTH, -SMTH));
 
     vec4 border = texture(BORDER, border_uv);
+    vec4 layer2 = texture(LAYER2, border_uv);
+    border.rgb = mix(border.rgb, layer2.rgb, layer2.a);
 
     border.rgb *= (bz_lights > 0.5) ? 1.0 : 0.5;
 

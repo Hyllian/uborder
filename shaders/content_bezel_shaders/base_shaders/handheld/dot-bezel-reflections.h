@@ -67,6 +67,7 @@ layout(location = 6) out vec2 c11;
 layout(location = 7) out vec2 pixel_no;
 layout(location = 8) out vec2 uv;
 layout(location = 9) out vec2 border_uv;
+layout(location = 10) out vec2 bezel_uv;
 
 void main()
 {
@@ -77,6 +78,7 @@ void main()
     vTexCoord    = middle + diff/fr_scale - fr_center;
 
     uv           = 2.0*vTexCoord - 1.0;
+    bezel_uv  = uv - 2.0*bz_center;
 
     border_uv = get_unrotated_coords(get_unrotated_coords(TexCoord.xy, ub_Rotation), int(global.border_allow_rot));
 
@@ -109,11 +111,13 @@ layout(location = 6) in vec2 c11;
 layout(location = 7) in vec2 pixel_no;
 layout(location = 8) in vec2 uv;
 layout(location = 9) in vec2 border_uv;
+layout(location = 10) in vec2 bezel_uv;
 layout(location = 0) out vec4 FragColor;
 layout(set = 0, binding = 2) uniform sampler2D Source;
 layout(set = 0, binding = 3) uniform sampler2D BORDER;
+layout(set = 0, binding = 4) uniform sampler2D LAYER2;
 #ifdef USE_AMBIENT_LIGHT
-layout(set = 0, binding = 4) uniform sampler2D ambi_temporal_pass;
+layout(set = 0, binding = 5) uniform sampler2D ambi_temporal_pass;
 #endif
 
 vec3 get_content(vec2 vTex, vec2 uv)

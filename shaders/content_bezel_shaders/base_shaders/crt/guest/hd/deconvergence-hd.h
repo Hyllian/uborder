@@ -310,6 +310,7 @@ layout(location = 0) out vec2 vTexCoord;
 layout(location = 1) out vec2 vTexOri;
 layout(location = 2) out vec2 uv;
 layout(location = 3) out vec2 border_uv;
+layout(location = 4) out vec2 bezel_uv;
 
 void main()
 {
@@ -320,6 +321,7 @@ void main()
     vTexCoord    = middle + diff/fr_scale - fr_center;
 
     uv           = 2.0*vTexCoord - 1.0;
+    bezel_uv  = uv - 2.0*bz_center;
 
     border_uv = get_unrotated_coords(get_unrotated_coords(TexCoord.xy, ub_Rotation), int(global.border_allow_rot));
 
@@ -335,6 +337,7 @@ layout(location = 0) in vec2 vTexCoord;
 layout(location = 1) in vec2 vTexOri;
 layout(location = 2) in vec2 uv;
 layout(location = 3) in vec2 border_uv;
+layout(location = 4) in vec2 bezel_uv;
 layout(location = 0) out vec4 FragColor;
 layout(set = 0, binding = 2) uniform sampler2D LinearizePass;
 layout(set = 0, binding = 3) uniform sampler2D BloomPass;
@@ -342,8 +345,9 @@ layout(set = 0, binding = 4) uniform sampler2D PrePass;
 layout(set = 0, binding = 5) uniform sampler2D Source;
 layout(set = 0, binding = 6) uniform sampler2D GlowPass;
 layout(set = 0, binding = 7) uniform sampler2D BORDER;
+layout(set = 0, binding = 8) uniform sampler2D LAYER2;
 #ifdef USE_AMBIENT_LIGHT
-layout(set = 0, binding = 8) uniform sampler2D ambi_temporal_pass;
+layout(set = 0, binding = 9) uniform sampler2D ambi_temporal_pass;
 #endif
 
 #define eps 1e-10 

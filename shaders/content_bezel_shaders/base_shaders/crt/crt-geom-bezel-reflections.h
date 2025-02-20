@@ -140,6 +140,7 @@ layout(location = 5) out vec2 one;
 layout(location = 6) out vec2 TextureSize;
 layout(location = 7) out vec2 uv;
 layout(location = 8) out vec2 border_uv;
+layout(location = 9) out vec2 bezel_uv;
 
 
 float intersect(vec2 xy)
@@ -200,6 +201,7 @@ void main()
     vTexCoord = middle + diff/fr_scale - fr_center;
 
     uv           = 2.0*vTexCoord - 1.0;
+    bezel_uv  = uv - 2.0*bz_center;
 
     border_uv = get_unrotated_coords(get_unrotated_coords(TexCoord.xy, ub_Rotation), int(global.border_allow_rot));
 
@@ -243,11 +245,13 @@ layout(location = 5) in vec2 one;
 layout(location = 6) in vec2 TextureSize;
 layout(location = 7) in vec2 uv;
 layout(location = 8) in vec2 border_uv;
+layout(location = 9) in vec2 bezel_uv;
 layout(location = 0) out vec4 FragColor;
 layout(set = 0, binding = 2) uniform sampler2D Source;
 layout(set = 0, binding = 3) uniform sampler2D BORDER;
+layout(set = 0, binding = 4) uniform sampler2D LAYER2;
 #ifdef USE_AMBIENT_LIGHT
-layout(set = 0, binding = 4) uniform sampler2D ambi_temporal_pass;
+layout(set = 0, binding = 5) uniform sampler2D ambi_temporal_pass;
 #endif
 
 

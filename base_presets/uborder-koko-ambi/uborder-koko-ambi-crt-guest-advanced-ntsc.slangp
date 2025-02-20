@@ -61,7 +61,7 @@ scale7 = 1.0
 alias7 = PrePass0
 
 
-textures = "SamplerLUT1;SamplerLUT2;SamplerLUT3;SamplerLUT4;BORDER"
+textures = "SamplerLUT1;SamplerLUT2;SamplerLUT3;SamplerLUT4;BORDER;LAYER2"
 SamplerLUT1 = "../../../../crt/shaders/guest/advanced/lut/trinitron-lut.png
 SamplerLUT1_linear = true
 SamplerLUT2 = "../../../../crt/shaders/guest/advanced/lut/inv-trinitron-lut.png
@@ -188,6 +188,11 @@ BORDER = "../../textures/borders/default.jpg"
 BORDER_linear = "true"
 BORDER_wrap_mode = "clamp_to_border"
 BORDER_mipmap = "false"
+
+LAYER2 = "../../textures/borders/default_layer2.png"
+LAYER2_linear = "true"
+LAYER2_wrap_mode = "clamp_to_border"
+LAYER2_mipmap = "false"
 
 mixfactor = "0.980000"
 

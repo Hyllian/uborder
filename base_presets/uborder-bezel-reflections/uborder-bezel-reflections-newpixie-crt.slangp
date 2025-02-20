@@ -24,11 +24,16 @@ shader3 = "../../shaders/content_bezel_shaders/crt/newpixie/newpixie-crt-bezel-r
 filter_linear3 = true
 scale_type3 = viewport
 
-textures = "BORDER"
+textures = "BORDER;LAYER2"
 BORDER = "../../textures/borders/default.jpg"
 BORDER_linear = "true"
 BORDER_wrap_mode = "clamp_to_border"
 BORDER_mipmap = "false"
+
+LAYER2 = "../../textures/borders/default_layer2.png"
+LAYER2_linear = "true"
+LAYER2_wrap_mode = "clamp_to_border"
+LAYER2_mipmap = "false"
 
 fr_zoom = "37.800000"
 fr_i_scaling_fac = "0.000000"

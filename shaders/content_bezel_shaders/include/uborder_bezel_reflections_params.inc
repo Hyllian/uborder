@@ -28,6 +28,8 @@
 #pragma parameter bz_transparent       "    Bezel Transparent [ OFF | ON ]"  0.0   0.0   1.0  1.0
 #pragma parameter bz_outer_curve       "    Bezel Curvature   [ OFF | ON ]"  0.0   0.0   1.0  1.0
 #pragma parameter bz_radius            "    Bezel Corner Radius"             0.05  0.005 1.0  0.01
+#pragma parameter bz_center_x          "    Bezel Center X"                  0.0 -200.0 200.0 0.1
+#pragma parameter bz_center_y          "    Bezel Center Y"                  0.0 -200.0 200.0 0.1
 #pragma parameter bz_red               "    Bezel Color - Red"             128.0   0.0 255.0  1.0
 #pragma parameter bz_green             "    Bezel Color - Green"           128.0   0.0 255.0  1.0
 #pragma parameter bz_blue              "    Bezel Color - Blue"            128.0   0.0 255.0  1.0

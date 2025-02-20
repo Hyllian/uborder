@@ -43,6 +43,8 @@
     float bz_outer_curve;
     float bz_ref_dist;
     float bz_radius;
+    float bz_center_x;
+    float bz_center_y;
     float bz_red;
     float bz_green;
     float bz_blue;

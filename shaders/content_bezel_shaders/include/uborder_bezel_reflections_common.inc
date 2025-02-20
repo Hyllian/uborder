@@ -64,6 +64,20 @@ vec2 h_warp(vec2 uv)
 
     return uv;
 }
+/*
+vec4 h_warp(vec4 uv)
+{
+    vec4 uvt = uv + vec4(tilt, 0.0.xx);
+
+    vec4 cylinder = sqrt( (r4 - uvt.xz*uvt.xz) / (r4 - 2.0*uvt.xz*uvt.xz) )*max_size;
+    vec2 sphere   = sqrt( (r4 - 1.0) / ( r4 - vec2(dot(uvt.xy, uvt.xy), dot(uvt.zw, uvt.zw)) ) );
+
+    uv.xy *= mix(sphere.xx, cylinder.xy, global.h_shape);
+    uv.zw *= mix(sphere.yy, cylinder.zw, global.h_shape2);
+
+    return uv;
+}
+*/
 
 #ifdef USE_BEZEL_REFLECTIONS_COMMON
 
@@ -72,6 +86,8 @@ vec2 h_warp(vec2 uv)
 #define PI 3.141592653589
 
 #define R_BLUR_SIZE 0.02
+
+vec2  bz_center   = get_rotated_vector(vec2(global.bz_center_x, global.bz_center_y)/100.0, ub_Rotation);
 
 float shine_size = (1.0 - global.bz_shine_size  );
 float amb_size   = (1.0 - global.bz_ambient_size);

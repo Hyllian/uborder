@@ -60,11 +60,16 @@ shader7 = "../../shaders/content_koko_ambi/crt/newpixie/newpixie-crt.slang"
 filter_linear7 = true
 scale_type7 = viewport
 
-textures = "BORDER"
+textures = "BORDER;LAYER2"
 BORDER = "../../textures/borders/default.jpg"
 BORDER_linear = "true"
 BORDER_wrap_mode = "clamp_to_border"
 BORDER_mipmap = "false"
+
+LAYER2 = "../../textures/borders/default_layer2.png"
+LAYER2_linear = "true"
+LAYER2_wrap_mode = "clamp_to_border"
+LAYER2_mipmap = "false"
 
 mixfactor = "0.980000"
 
