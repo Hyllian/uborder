@@ -60,4 +60,6 @@
     float border_alpha;
     float black_baoc;
     float border_weight;
+    float border_dimming;
+    float layer2_dimming;
 #endif

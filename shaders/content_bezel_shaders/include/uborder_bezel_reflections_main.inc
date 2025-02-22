@@ -13,9 +13,14 @@ void main()
 
     vec4 border = texture(BORDER, border_uv);
     vec4 layer2 = texture(LAYER2, border_uv);
+
+    if (bz_lights < 0.5){
+        layer2.rgb *= global.layer2_dimming;
+	border.rgb *= global.border_dimming;
+    }
+
     border.rgb = mix(border.rgb, layer2.rgb, layer2.a);
 
-    border.rgb *= (bz_lights > 0.5) ? 1.0 : 0.5;
 
 #ifdef USE_AMBIENT_LIGHT
     vec3 ambi   = texture(ambi_temporal_pass, border_uv).rgb;

@@ -51,6 +51,8 @@
 #pragma parameter border_alpha         "    Border Alpha Over Content (BAOC)"0.0  0.0 1.0 0.01
 #pragma parameter black_baoc           "    (BAOC) Emphasis on Content"      0.0  0.0 1.0 1.0
 #pragma parameter border_weight        "    Border to Ambient-Light Weight"  0.5  0.0 1.0 0.05
+#pragma parameter border_dimming       "    Border Dimming (Lights OUT)"     0.5  0.0 1.0 0.05
+#pragma parameter layer2_dimming       "    Layer2 Dimming (Lights OUT)"     1.0  0.0 1.0 0.05
 //#endif
 
 #pragma parameter h_nonono             "HYLLIAN'S CURVATURE:"                1.0  0.0   1.0 1.0
