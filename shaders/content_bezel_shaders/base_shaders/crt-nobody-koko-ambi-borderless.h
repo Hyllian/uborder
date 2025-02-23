@@ -51,8 +51,6 @@ layout(push_constant) uniform Push
 #define USE_GLOBAL_UNIFORMS
 #define USE_BEZEL_REFLECTIONS_COMMON
 
-
-
 layout(std140, set = 0, binding = 0) uniform UBO
 {
 	mat4 MVP;
@@ -111,6 +109,7 @@ layout(std140, set = 0, binding = 0) uniform UBO
 float pix_sizex  = mix(PIX_SIZE, CN_SCAN_SIZE, CN_VSCANLINES);
 float scan_sizey = mix(CN_SCAN_SIZE, PIX_SIZE, CN_VSCANLINES);
 
+
 vec2  mask_size  = ub_OutputSize.xy* fr_scale * (1.0 - 0.5*global.h_curvature);
 
 
@@ -157,10 +156,6 @@ void main()
     border_uv = middle + (border_uv.xy - middle - border_pos) / (global.border_scale*all_zoom);
 
     border_uv = border_uv.xy * vec2(1.000001);
-
-#ifdef KEEP_BORDER_ASPECT_RATIO
-    border_uv -= 0.5.xx;
-#endif
 }
 
 #pragma stage fragment
@@ -171,11 +166,7 @@ layout(location = 3) in vec2 border_uv;
 layout(location = 4) in vec2 bezel_uv;
 layout(location = 0) out vec4 FragColor;
 layout(set = 0, binding = 2) uniform sampler2D Source;
-layout(set = 0, binding = 3) uniform sampler2D BORDER;
-layout(set = 0, binding = 4) uniform sampler2D LAYER2;
-#ifdef USE_AMBIENT_LIGHT
-layout(set = 0, binding = 5) uniform sampler2D ambi_temporal_pass;
-#endif
+layout(set = 0, binding = 3) uniform sampler2D ambi_temporal_pass;
 
 /* Mask code pasted from subpixel_masks.h. Masks 3 and 4 added. */
 vec3 mask_weights(vec2 coord, float phosphor_layout){
@@ -468,4 +459,4 @@ vec3 get_content(vec2 vTex, vec2 uv)
 #define ReflexSrc Source
 
 // Yeah, an unorthodox 'include' usage.
-#include "../include/uborder_bezel_reflections_main.inc"
+#include "../include/uborder_main_borderless.inc"

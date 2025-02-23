@@ -91,7 +91,12 @@ void main()
 
     border_uv = middle + (border_uv.xy - middle - border_pos) / (global.border_scale*all_zoom);
 
-    border_uv = border_uv.xy * vec2(1.000001);}
+    border_uv = border_uv.xy * vec2(1.000001);
+
+#ifdef KEEP_BORDER_ASPECT_RATIO
+    border_uv -= 0.5.xx;
+#endif
+}
 
 // PUBLIC DOMAIN CRT STYLED SCAN-LINE SHADER
 //

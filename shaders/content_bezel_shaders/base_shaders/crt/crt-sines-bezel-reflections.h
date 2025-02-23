@@ -131,6 +131,10 @@ void main()
 
     border_uv = border_uv.xy * vec2(1.000001);
 
+#ifdef KEEP_BORDER_ASPECT_RATIO
+    border_uv -= 0.5.xx;
+#endif
+
     omega = vec2(pi * OutputSize.x, pi * SourceSize.y/SCALE);
 }
 

@@ -88,6 +88,9 @@ void main()
 
     border_uv = border_uv.xy * vec2(1.000001);
 
+#ifdef KEEP_BORDER_ASPECT_RATIO
+    border_uv -= 0.5.xx;
+#endif
    
    float dx = global.SourceSize.z;
    float dy = global.SourceSize.w;

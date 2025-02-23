@@ -3,6 +3,16 @@
 // This path will be used eventually.
 //#include "../../../../../misc/shaders/input_transform/rotation.inc"
 #include "rotation.inc"
+#include "uborder_bezel_reflections_user_static_params.inc"
+
+
+#ifdef KEEP_BORDER_ASPECT_RATIO
+    #define RECALC_BORDER_ASPECT_RATIO                                                           \
+        vec2 border_size    = textureSize(BORDER, 0);                                            \
+        float border_aspect = border_size.y/border_size.x;                                       \
+        float asp_ratio     = border_aspect/aspect.y;                                            \
+        vec2 b_uv = border_uv * (asp_ratio > 1.0 ? vec2(1.0, 1.0/asp_ratio) : vec2(asp_ratio, 1.0)) + 0.5.xx;
+#endif
 
 float is_rotated  = mod(ub_Rotation, 2.);
 
@@ -20,7 +30,6 @@ vec2  int_scale         = OutputRotSize.xy * OriginalRotInvSize.y * rot_ar / int
 vec2  float_scale       = OutputRotSize.x * global.fr_zoom * all_zoom / (OutputRotSize.xy  * 100.0
                           * rot_ar);
 
-vec2 fr_scale = get_rotated_size(mix(float_scale, 1.0/int_scale, global.fr_i_scaling), ub_Rotation);
 
 vec2 overscan         = 100.0/(get_rotated_size(vec2(global.h_overscan_x, global.h_overscan_y), ub_Rotation));
 vec2 content_position = 2.0*get_rotated_vector(vec2(global.h_angle_x, global.h_angle_y), ub_Rotation);
@@ -31,6 +40,15 @@ vec2  aspect       = vec2(1.0, OutputRotSize.y/OutputRotSize.x);
 float cornersize   = global.h_cornersize * min(aspect.x, aspect.y);
 float cornersmooth = global.h_cornersmooth/100.0;
 vec2  tilt         = global.h_radius*sin(get_rotated_vector(vec2(global.h_x_tilt, global.h_y_tilt), ub_Rotation));
+
+
+#ifdef KEEP_BORDER_ASPECT_RATIO
+    float b_aux = ASPECT_TEX_Y/(aspect.y*ASPECT_TEX_X);
+    float border_to_output = max(b_aux, 1.0/b_aux);
+    vec2 fr_scale = border_to_output*get_rotated_size(mix(float_scale, 1.0/int_scale, global.fr_i_scaling), ub_Rotation);
+#else
+    vec2 fr_scale = get_rotated_size(mix(float_scale, 1.0/int_scale, global.fr_i_scaling), ub_Rotation);
+#endif
 
 const vec2  middle = 0.5.xx;
 

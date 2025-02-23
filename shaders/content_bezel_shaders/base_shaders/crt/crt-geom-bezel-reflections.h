@@ -211,6 +211,10 @@ void main()
 
     border_uv = border_uv.xy * vec2(1.000001);
 
+#ifdef KEEP_BORDER_ASPECT_RATIO
+    border_uv -= 0.5.xx;
+#endif
+
     // Precalculate a bunch of useful values we'll need in the fragment
     // shader.
     sinangle    = sin(vec2(registers.x_tilt, registers.y_tilt));

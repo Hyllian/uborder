@@ -11,8 +11,17 @@ void main()
 
     vec2 area_out = RoundedRectVec(vec4(uvMB, uvOB), vec4(MID_BZ, OUT_BZ), bz_r.xx, vec2(SMTH, -SMTH));
 
-    vec4 border = texture(BORDER, border_uv);
-    vec4 layer2 = texture(LAYER2, border_uv);
+//    vec4 border = texture(BORDER, border_uv);
+
+#ifdef KEEP_BORDER_ASPECT_RATIO
+    RECALC_BORDER_ASPECT_RATIO
+#else
+    vec2 b_uv = border_uv;
+#endif
+
+    vec4 border = texture(BORDER, b_uv);
+    vec4 layer2 = texture(LAYER2, b_uv);
+
 
     if (bz_lights < 0.5){
         layer2.rgb *= global.layer2_dimming;
@@ -23,7 +32,7 @@ void main()
 
 
 #ifdef USE_AMBIENT_LIGHT
-    vec3 ambi   = texture(ambi_temporal_pass, border_uv).rgb;
+    vec3 ambi  = texture(ambi_temporal_pass, b_uv).rgb;
     border.rgb = border.rgb*(ambi + (global.border_weight).xxx);
 #endif
 
