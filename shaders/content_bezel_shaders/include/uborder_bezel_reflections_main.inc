@@ -4,7 +4,7 @@ void main()
 
     vec2 uvFC = mix(uv, h_warp(uv), global.h_curvature); // Frame content area
     vec2 uvIB = uvFC;                                    // Inner bezel area
-    vec2 uvMB = mix(bezel_uv, h_warp(bezel_uv), global.bz_outer_curve);    // In Between bezel area
+    vec2 uvMB = mix(bezel_uv, bz_warp(bezel_uv), global.bz_outer_curve);    // In Between bezel area
     vec2 uvOB = bezel_uv;                                    // Outer bezel area
 
     uvFC = uvFC*overscan - content_position;
@@ -120,8 +120,8 @@ void main()
         bezels += (bz_color + Blur) * bezel_inner_area * (0.25*(1.0 + corner));
 
     	// Outer Bezel
-   	bezels +=  mix(bz_color, BZ_COLOR, global.bz_transparent) * bezel_outer_area;
-
+//   	bezels +=  mix(bz_color, BZ_COLOR, global.bz_transparent) * bezel_outer_area;
+   	bezels +=  mix(BZ_COLOR, border.rgb, global.bz_outer_transparent) * bezel_outer_area;
     }
     else
     {
@@ -133,11 +133,12 @@ void main()
         bezels += (BZ_COLOR + Blur) * bezel_inner_area * (ambient_out * (0.7 + 0.35*(1.0 - corner)) + Blur);
 
         // Outer Bezel
-        bezels += BZ_COLOR * bezel_outer_area * mix(ambient_out, 1.0, global.bz_transparent);
+//        bezels += BZ_COLOR * bezel_outer_area * mix(ambient_out, 1.0, global.bz_transparent);
+   	bezels +=  mix(BZ_COLOR  * mix(ambient_out, 1.0, global.bz_transparent), border.rgb, global.bz_outer_transparent) * bezel_outer_area;
 
     }
 
-    bezels = mix(bezels+border.rgb*bezel_inner_area*global.bz_transparent, mix(bezels, border.rgb, border.a), global.ub_border_top);
+    bezels = mix(bezels + border.rgb*bezel_inner_area*global.bz_transparent, mix(bezels, border.rgb, border.a), global.ub_border_top);
 
     FragColor = vec4(bezels, 1.0);
 }

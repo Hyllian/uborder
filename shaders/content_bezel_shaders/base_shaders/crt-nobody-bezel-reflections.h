@@ -424,33 +424,39 @@ vec3 get_content(vec2 vTex, vec2 uv)
 
     vec2 pix_coord = vTex * TextureSize.xy - scan_off;
     vec2 tc        = (floor(pix_coord)   + cn_offset) * TextureSize.zw; // tc  = texel coord
-    vec2 pos       =  fract(pix_coord)   - cn_offset; // pos = pixel position
-    vec2 dir       =  sign(pos); // dir = pixel direction
-    pos            =   abs(pos);
+    vec2 pos       = fract(pix_coord)   - cn_offset; // pos = pixel position
+    vec2 dir       = sign(pos); // dir = pixel direction
+    pos            = abs(pos);
+    vec4 ps        = vec4(pos, 1.0.xx - pos);
 
     vec2 g1 = dir * vec2(TextureSize.z,  0);
     vec2 g2 = dir * vec2( 0, TextureSize.w);
 
-    mat2x3 AB = mat2x3(clamp(GAMMA_IN(texture(Source, tc    ).xyz), 0.0, 1.0), clamp(GAMMA_IN(texture(Source, tc +g1   ).xyz), 0.0, 1.0));
-    mat2x3 CD = mat2x3(clamp(GAMMA_IN(texture(Source, tc +g2).xyz), 0.0, 1.0), clamp(GAMMA_IN(texture(Source, tc +g1+g2).xyz), 0.0, 1.0));
+    vec3 A = clamp(GAMMA_IN(texture(Source, tc       ).xyz), 0.0, 1.0);
+    vec3 B = clamp(GAMMA_IN(texture(Source, tc +g1   ).xyz), 0.0, 1.0);
+    vec3 C = clamp(GAMMA_IN(texture(Source, tc +g2   ).xyz), 0.0, 1.0);
+    vec3 D = clamp(GAMMA_IN(texture(Source, tc +g1+g2).xyz), 0.0, 1.0);
 
-    vec2 wx = wgt(vec2(pos.x, 1.0-pos.x) / pix_sizex);
+    vec2 wx = wgt(ps.xz / pix_sizex);
 
-    mat2x3 cc = mat2x3(AB * wx, CD * wx);
+    vec3 cc0 = (A*wx.x + B*wx.y);
+    vec3 cc1 = (C*wx.x + D*wx.y);
 
-    float c0max = max(cc[0].r, max(cc[0].g, cc[0].b));
-    float c1max = max(cc[1].r, max(cc[1].g, cc[1].b));
+    float c0max = max(cc0.r, max(cc0.g, cc0.b));
+    float c1max = max(cc1.r, max(cc1.g, cc1.b));
 
     float lum0  = mix(CN_BEAM_MIN_WIDTH, CN_BEAM_MAX_WIDTH, c0max);
     float lum1  = mix(CN_BEAM_MIN_WIDTH, CN_BEAM_MAX_WIDTH, c1max);
 
     vec2  ssy = scan_sizey.xx;
-     ssy.x *= (CN_VSCANLINES > 0.5 ? 1.0 : lum0);
-     ssy.y *= (CN_VSCANLINES > 0.5 ? 1.0 : lum1);
+    ssy.x *= (CN_VSCANLINES > 0.5 ? 1.0 : lum0);
+    ssy.y *= (CN_VSCANLINES > 0.5 ? 1.0 : lum1);
+
+    vec2 wy = wgt(ps.yw / ssy);
 
     float vig = (params.CN_VIG_TOGGLE > 0.5) ? vignette(vTex) : 1.0;
 
-    vec3  content = vig * (cc * wgt(vec2(pos.y, 1.0-pos.y) / ssy));
+    vec3  content = vig * (cc0 * wy.x + cc1 * wy.y);
 
 // Mask
 

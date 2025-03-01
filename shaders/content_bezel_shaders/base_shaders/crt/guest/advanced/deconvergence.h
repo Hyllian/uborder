@@ -897,11 +897,15 @@ else{
 	color = min(color, 1.0);
 
 	if (edgemask > 0.05) {
-		mx0 = COMPAT_TEXTURE(Source, pos1 - dx).a; mx0 = COMPAT_TEXTURE(Source, pos1 - dx*(1.0-sqrt(mx0))).a; 
-		mx2 = COMPAT_TEXTURE(Source, pos1 + dx).a; mx2 = COMPAT_TEXTURE(Source, pos1 + dx*(1.0-sqrt(mx2))).a; 
-		mb = (1.0 - abs(pow(mx0,0.325)-pow(mx2,0.325)));
-		mb = edgemask*(1.0001-mb*mb)*(1.25-colmx);
-		color = color + mix(2.25*mb*orig1, 0.0.xxx, color); }
+		mx0 = COMPAT_TEXTURE(Source, pos1 - dx).a; mx0 = COMPAT_TEXTURE(Source, pos1 - dx*(1.0-0.75*sqrt(mx0))).a; 
+		mx2 = COMPAT_TEXTURE(Source, pos1 + dx).a; mx2 = COMPAT_TEXTURE(Source, pos1 + dx*(1.0-0.75*sqrt(mx2))).a; 
+		float mx3 = COMPAT_TEXTURE(Source, pos1 - 4.0*dx).a;
+		float mx4 = COMPAT_TEXTURE(Source, pos1 + 4.0*dx).a;
+		mx4 = max(pow(abs(mx3-mx4),0.55-0.40*cx),min(max(mx3,mx4)/min(0.1+cx,1.0),1.0));
+		mb = (1.0 - abs(pow(mx0,1.0-0.65*mx2)-pow(mx2,1.0-0.65*mx0)));
+		mb = mx4*edgemask*(1.0001-mb*mb);
+		vec3 temp = mix(color, orig1, mb);
+		color = max(temp + mix(3.5*mb*mix(1.625*temp,temp,cx), 0.0.xxx, pow(color, 0.75.xxx-0.5*colmx)),color); }
 	
 	color = color * mix(1.0, mix(0.5*(1.0+w3), w3, mx), pr_scan);  // preserve scanlines
 	

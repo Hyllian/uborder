@@ -82,6 +82,9 @@ vec2 h_warp(vec2 uv)
 
     return uv;
 }
+
+
+
 /*
 vec4 h_warp(vec4 uv)
 {
@@ -105,6 +108,10 @@ vec4 h_warp(vec4 uv)
 
 #define R_BLUR_SIZE 0.02
 
+float bz_curv_rad  = clamp(global.h_radius + global.bz_curve_radius, 1.8, 10.0);
+float rz           = bz_curv_rad * bz_curv_rad;
+vec2  max_size_z   = vec2(sqrt( (rz - 2.0) / (rz - 1.0) ), 1.0);
+
 vec2  bz_center   = get_rotated_vector(vec2(global.bz_center_x, global.bz_center_y)/100.0, ub_Rotation);
 
 float shine_size = (1.0 - global.bz_shine_size  );
@@ -126,6 +133,18 @@ float mb_aspect = (MID_BZ.y-INN_BZ.y)/(MID_BZ.x-INN_BZ.x);
 
 vec2  border_pos = vec2(global.border_center_x,global.border_center_y);
 
+
+vec2 bz_warp(vec2 uv)
+{
+    
+
+    vec2 cylinder = sqrt( (rz - uv.x*uv.x) / (rz - 2.0*uv.x*uv.x) )*max_size_z;
+    float sphere   =  sqrt( (rz - 1.0) / ( rz - dot(uv, uv) ) );
+
+    uv *= mix(sphere.xx, cylinder, global.h_shape);
+
+    return uv;
+}
 
 float rand(vec2 co){
     return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);

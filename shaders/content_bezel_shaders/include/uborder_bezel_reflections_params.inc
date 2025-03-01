@@ -3,7 +3,7 @@
 #pragma parameter frame_nonono         "FRAME:"                               0.0    0.0   1.0 1.0
 #pragma parameter fr_aspect_x          "    Set Aspect Ratio Numerator"       8.0    1.0  32.0 0.02
 #pragma parameter fr_aspect_y          "    Set Aspect Ratio Denominator"     6.0    1.0  32.0 0.02
-#pragma parameter fr_zoom              "    Zoom %"                          50.0    2.0 200.0 0.2
+#pragma parameter fr_zoom              "    Zoom %"                          50.0    2.0 200.0 0.1
 #pragma parameter fr_i_scaling         "    Use Integer Scaling for Y"        0.0    0.0   1.0 1.0
 #pragma parameter fr_i_scaling_fac     "    Integer Scaling Factor [ - / + ]" 0.0  -20.0   1.0 1.0
 #pragma parameter fr_center_x          "    Center X"                         0.0 -200.0 200.0 0.1
@@ -26,14 +26,16 @@
 #pragma parameter bz_outer_bezel_x     "    Bezel Outer Width"               0.3   0.0   1.0  0.001
 #pragma parameter bz_outer_bezel_y     "    Bezel Outer Height"              0.3   0.0   1.0  0.001
 #pragma parameter bz_transparent       "    Bezel Transparent [ OFF | ON ]"  0.0   0.0   1.0  1.0
+#pragma parameter bz_outer_transparent "    Bezel Outer Transparent [ OFF | ON ]"  0.0   0.0   1.0  1.0
 #pragma parameter bz_outer_curve       "    Bezel Curvature   [ OFF | ON ]"  0.0   0.0   1.0  1.0
+#pragma parameter bz_curve_radius      "    Bezel Curvature Modifier"        0.0 -10.0  10.0  0.1
 #pragma parameter bz_radius            "    Bezel Corner Radius"             0.05  0.005 1.0  0.01
 #pragma parameter bz_center_x          "    Bezel Center X"                  0.0 -200.0 200.0 0.1
 #pragma parameter bz_center_y          "    Bezel Center Y"                  0.0 -200.0 200.0 0.1
 #pragma parameter bz_red               "    Bezel Color - Red"             128.0   0.0 255.0  1.0
 #pragma parameter bz_green             "    Bezel Color - Green"           128.0   0.0 255.0  1.0
 #pragma parameter bz_blue              "    Bezel Color - Blue"            128.0   0.0 255.0  1.0
-#pragma parameter bz_ref_dist          "    Reflection Distance"             0.0  -0.6   0.6  0.01
+#pragma parameter bz_ref_dist          "    Reflection Distance"             0.0  -0.6   0.6  0.001
 #pragma parameter bz_shine             "    Shine Intensity"                 0.25  0.0   1.0  0.01
 #pragma parameter bz_shine_size        "    Shine Size"                      0.75  0.0   1.0  0.01
 #pragma parameter bz_ambient           "    Ambient Intensity"               0.15  0.0   1.0  0.01
