@@ -54,7 +54,7 @@ void main()
     content = mix(content, mix(content.rgb, border.rgb, border.a), global.ub_border_top);
 
     const float ambient     = bz_ambient;
-    const float ambient_out = 1.4*bz_ambient;
+    float ambient_out = 1.0*bz_ambient + 0.5*global.bz_ambient_size;
     vec3 shine_content      = 0.0.xxx;
     vec3 ambient_content    = 0.0.xxx;
 
@@ -109,6 +109,12 @@ void main()
     IB = vec2(IB.x*mb_aspect, IB.y - MID_BZ.y + mb_aspect*MID_BZ.x);
     float corner = fsmoothstep(-bz_r, bz_r, IB.y - mix(IB.x, bz_ang*IB.x + bz_pos, cyl_shape));
 
+#ifdef USE_AMBIENT_LIGHT
+    BZ_COLOR.rgb = BZ_COLOR.rgb*(ambi + (global.border_weight).xxx);
+    ambient_out *= (1.0 + 0.05*dot(ambi, 1.0.xxx));
+#endif
+
+
     if (global.bz_transparent > 0.5) BZ_COLOR = border.rgb;
 
     if (bz_lights == 1.0)
@@ -130,7 +136,8 @@ void main()
                                 RoundedRect(uvOB, MID_BZ, bz_r, vec2(SMTH*2.0, -SMTH* 2.0));
 
         // Inner Bezel and Reflections
-        bezels += (BZ_COLOR + Blur) * bezel_inner_area * (ambient_out * (0.7 + 0.35*(1.0 - corner)) + Blur);
+//        bezels += (BZ_COLOR + Blur) * bezel_inner_area * (ambient_out * (0.7 + 0.35*(1.0 - corner)) + Blur);
+        bezels += (BZ_COLOR + Blur) * bezel_inner_area * (ambient_out * (0.5 + 0.25*(1.0 - corner)));
 
         // Outer Bezel
 //        bezels += BZ_COLOR * bezel_outer_area * mix(ambient_out, 1.0, global.bz_transparent);
