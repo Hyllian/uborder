@@ -4,13 +4,14 @@ layout(push_constant) uniform Push
     float BEAM_MIN_WIDTH;
     float BEAM_MAX_WIDTH;
     float SCANLINES_STRENGTH;
-    float COLOR_BOOST;
+    float BRIGHTBOOST;
     float SHARPNESS_HACK;
     float PHOSPHOR_LAYOUT;
-    float MASK_INTENSITY;
+    float MASK_STRENGTH;
     float MONITOR_SUBPIXELS;
     float InputGamma;
     float OutputGamma;
+    float MaskGamma;
     float VSCANLINES;
     float CRT_ANTI_RINGING;
     float VIG_TOGGLE;
@@ -43,24 +44,33 @@ layout(std140, set = 0, binding = 0) uniform UBO
 
 #include "../../include/uborder_bezel_reflections_common.inc"
 
-#pragma parameter CRT_HYLLIAN_SINC "[CRT-HYLLIAN-SINC PARAMS]" 0.0 0.0 1.0 1.0
-#pragma parameter BEAM_MIN_WIDTH "    MIN BEAM WIDTH" 0.86 0.0 1.0 0.01
-#pragma parameter BEAM_MAX_WIDTH "    MAX BEAM WIDTH" 1.0 0.0 1.0 0.01
-#pragma parameter SCANLINES_STRENGTH "    SCANLINES STRENGTH" 0.30 0.0 1.0 0.01
-#pragma parameter COLOR_BOOST "    COLOR BOOST" 1.00 1.0 2.0 0.05
-#pragma parameter SHARPNESS_HACK "    SHARPNESS_HACK" 1.0 1.0 4.0 1.0
-#pragma parameter PHOSPHOR_LAYOUT "    PHOSPHOR LAYOUT" 1.0 0.0 15.0 1.0
-#pragma parameter MASK_INTENSITY "    MASK INTENSITY" 0.30 0.0 1.0 0.02
-#pragma parameter MONITOR_SUBPIXELS "    MONITOR SUBPIXELS LAYOUT [ RGB | BGR ]" 0.0 0.0 1.0 1.0
-#pragma parameter InputGamma "    INPUT GAMMA" 2.4 0.0 5.0 0.1
-#pragma parameter OutputGamma "    OUTPUT GAMMA" 2.2 0.0 5.0 0.1
-#pragma parameter VSCANLINES "    SCANLINES DIRECTION" 0.0 0.0 1.0 1.0
-#pragma parameter VIG_TOGGLE        "    VIGNETTE TOGGLE"             1.0  0.0   1.0 1.0
-#pragma parameter VIG_BASE          "    VIGNETTE RANGE"             16.0  2.0 100.0 2.0
-#pragma parameter VIG_EXP           "    VIGNETTE STRENGTH"           0.16 0.0   2.0 0.02
+#pragma parameter NO_NONONO          " "                              0.0  0.0 0.0 1.0
+#pragma parameter CS_NONONO          "** CRT-HYLLIAN-SINC **"         0.0  0.0 0.0 1.0
 
+#pragma parameter col_nonono         "COLOR SETTINGS:"                0.0  0.0 0.0 1.0
+#pragma parameter InputGamma         "    Input Gamma"                2.4  0.0 4.0 0.1
+#pragma parameter OutputGamma        "    Output Gamma"               2.2  0.0 3.0 0.1
+#pragma parameter BRIGHTBOOST        "    BrightBoost"                1.0  0.5 1.5 0.01
+#pragma parameter VIG_TOGGLE         "    Vignette Toggle"            1.0  0.0 1.0 1.0
+#pragma parameter VIG_BASE           "        Vignette Range"        32.0  2.0 100.0 2.0
+#pragma parameter VIG_EXP            "        Vignette Strength"      0.16  0.0 2.0 0.02
 
-#pragma parameter CRT_ANTI_RINGING "Spline16 Anti-Ringing [ OFF | ON ]" 1.0 0.0 1.0 1.0
+#pragma parameter scan_nonono        "SCANLINES SETTINGS:"           0.0  0.0 0.0 1.0
+#pragma parameter BEAM_MIN_WIDTH     "    Min Beam Width"           0.80 0.0 1.0 0.01
+#pragma parameter BEAM_MAX_WIDTH     "    Max Beam Width"           1.0  0.0 1.0 0.01
+#pragma parameter SCANLINES_STRENGTH "    Scanlines Strength"       0.30 0.0 1.0 0.01
+#pragma parameter VSCANLINES         "    Orientation [ HORIZONTAL, VERTICAL ]"    0.0 0.0 1.0 1.0
+
+#pragma parameter msk_nonono           "MASK SETTINGS:"               0.0 0.0  0.0 1.0
+#pragma parameter PHOSPHOR_LAYOUT      "    Mask [1-6 APERT, 7-10 DOT, 11-14 SLOT, 15-17 LOTTES]" 1.0 0.0 17.0 1.0
+#pragma parameter MASK_STRENGTH        "    Mask Strength"            1.0 0.0 1.0 0.02
+#pragma parameter MaskGamma            "    Mask Gamma"               2.4 1.0 5.0 0.1
+#pragma parameter MONITOR_SUBPIXELS    "    Monitor Subpixels Layout [ RGB, BGR ]" 0.0 0.0 1.0 1.0
+
+#pragma parameter fil_nonono        "FILTERING SETTINGS:"                            0.0 0.0 0.0 1.0
+#pragma parameter SHARPNESS_HACK    "    Sharpness Hack"                             1.0 1.0 4.0 1.0
+#pragma parameter CRT_ANTI_RINGING  "    Anti Ringing"                               1.0 0.0 1.0 1.0
+
 
 #define CRT_ANTI_RINGING param.CRT_ANTI_RINGING
 
@@ -142,21 +152,85 @@ layout(set = 0, binding = 5) uniform sampler2D ambi_temporal_pass;
 #define scanlines_strength (1.0-0.5*param.SCANLINES_STRENGTH)
 #define beam_min_width     param.BEAM_MIN_WIDTH
 #define beam_max_width     param.BEAM_MAX_WIDTH
-#define color_boost        param.COLOR_BOOST
+#define color_boost        param.BRIGHTBOOST
 
 #define pi    3.1415926535897932384626433832795
 #define wa    (0.5*pi)
 #define wb    (pi)
 
-//#define CRT_ANTI_RINGING  1.0
+// Shadow mask.
+vec3 Mask(vec2 pos, float shadowMask)
+{
+    const float maskDark  = 0.0;
+    const float maskLight = 1.0;
+
+    vec3 mask = vec3(maskDark, maskDark, maskDark);
+  
+    // Very compressed TV style shadow mask.
+    if (shadowMask == 15.0) 
+    {
+        float line = maskLight;
+        float odd = 0.0;
+        
+        if (fract(pos.x*0.166666666) < 0.5) odd = 1.0;
+        if (fract((pos.y + odd) * 0.5) < 0.5) line = maskDark;  
+        
+        pos.x = fract(pos.x*0.333333333);
+
+        if      (pos.x < 0.333) mask.b = maskLight;
+        else if (pos.x < 0.666) mask.g = maskLight;
+        else                    mask.r = maskLight;
+        mask*=line;  
+    } 
+
+    // Aperture-grille. This mask is the same as mask 2.
+/*    else if (shadowMask == 16.0) 
+    {
+        pos.x = fract(pos.x*0.333333333);
+
+        if      (pos.x < 0.333) mask.b = maskLight;
+        else if (pos.x < 0.666) mask.g = maskLight;
+        else                    mask.r = maskLight;
+    } 
+*/
+    // Stretched VGA style shadow mask (same as prior shaders).
+    else if (shadowMask == 16.0) 
+    {
+        pos.x += pos.y*3.0;
+        pos.x  = fract(pos.x*0.166666666);
+
+        if      (pos.x < 0.333) mask.b = maskLight;
+        else if (pos.x < 0.666) mask.g = maskLight;
+        else                    mask.r = maskLight;
+    }
+
+    // VGA style shadow mask.
+    else if (shadowMask == 17.0) 
+    {
+        pos.xy  = floor(pos.xy*vec2(1.0, 0.5));
+        pos.x  += pos.y*3.0;
+        pos.x   = fract(pos.x*0.166666666);
+
+        if      (pos.x < 0.333) mask.b = maskLight;
+        else if (pos.x < 0.666) mask.g = maskLight;
+        else                    mask.r = maskLight;
+    }
+
+    return mask;
+}
+
 
 /* Mask code pasted from subpixel_masks.h. Masks 3 and 4 added. */
 vec3 mask_weights(vec2 coord, float phosphor_layout){
+   
+//   if (lottes_mask > 0.5) return Mask(coord);
+
+   if (phosphor_layout > 14) return Mask(coord, phosphor_layout);
+
    vec3 weights = vec3(1.,1.,1.);
 
    const float on  = 1.;
    const float off = 0.;
-
 
    const vec3 red     = vec3(off, off, on );
    const vec3 green   = vec3(off, on,  off);
@@ -194,7 +268,7 @@ vec3 mask_weights(vec2 coord, float phosphor_layout){
 
    else if(phosphor_layout == 3.){
       // black and white aperture; good for weird subpixel layouts and low brightness; good for 1080p and lower
-      const vec3 aperture2[3] = vec3[](black, white, white);
+      const vec3 aperture2[3] = vec3[](black, white, black);
       
       z = int(floor(mod(coord.x, 3.0)));
       
@@ -354,24 +428,6 @@ vec3 mask_weights(vec2 coord, float phosphor_layout){
       return weights;
    }
    
-   else if(phosphor_layout == 15.){
-      // slot_3_7x6_rgb
-      const vec3 slot[6][14] = {
-         {red,   red,   yellow, green, cyan,  blue,  blue,  red,   red,   yellow, green,  cyan,  blue,  blue},
-         {red,   red,   yellow, green, cyan,  blue,  blue,  red,   red,   yellow, green,  cyan,  blue,  blue},
-         {red,   red,   yellow, green, cyan,  blue,  blue,  black, black, black,  black,  black, black, black},
-         {red,   red,   yellow, green, cyan,  blue,  blue,  red,   red,   yellow, green,  cyan,  blue,  blue},
-         {red,   red,   yellow, green, cyan,  blue,  blue,  red,   red,   yellow, green,  cyan,  blue,  blue},
-         {black, black, black,  black, black, black, black, black, red,   red,    yellow, green, cyan,  blue}
-      };
-      
-      w = int(floor(mod(coord.y, 6.0)));
-      z = int(floor(mod(coord.x, 14.0)));
-      
-      weights = slot[w][z];
-      return weights;
-   }
-
    else return weights;
 }
 
@@ -468,6 +524,9 @@ vec3 get_content(vec2 vTex, vec2 uv)
     // Spline16 horizontal filter
     vec3 color0   = clamp((color_matrix0 * weights)/dot(weights, vec4(1.0)), 0.0, 1.0);
     vec3 color1   = clamp((color_matrix1 * weights)/dot(weights, vec4(1.0)), 0.0, 1.0);
+//    vec3 color0   = (color_matrix0 * weights)/dot(weights, vec4(1.0));
+//    vec3 color1   = (color_matrix1 * weights)/dot(weights, vec4(1.0));
+
 
     // Get min/max samples
     vec3 min_sample0 = min(c01,c02);
@@ -491,15 +550,15 @@ vec3 get_content(vec2 vTex, vec2 uv)
     vec3 lum1 = mix(vec3(beam_min_width), vec3(beam_max_width), color1);
 
 // Using sinc scanlines
-//    vec3 d0 = clamp(scanlines_strength*pos0/(lum0*lum0+0.0000001), 0.0, 1.0);
-//    vec3 d1 = clamp(scanlines_strength*pos1/(lum1*lum1+0.0000001), 0.0, 1.0);
+/*    vec3 d0 = clamp(scanlines_strength*pos0/(lum0*lum0+0.0000001), 0.0, 1.0);
+    vec3 d1 = clamp(scanlines_strength*pos1/(lum1*lum1+0.0000001), 0.0, 1.0);
 
-//    d0 = resampler3(d0);
-//    d1 = resampler3(d1);
+    d0 = resampler3(d0);
+    d1 = resampler3(d1);
 
     // Apply color enhancement, scanlines orientation, mask and gamma.
-//    vec3 color = color_boost*(color0*d0+color1*d1)/(wa*wb);
-
+    vec3 color = color_boost*(color0*d0+color1*d1)/(wa*wb);
+*/
 
 // Using nobody scanlines
     float bm0 = max(lum0.r, max(lum0.g, lum0.b));
@@ -510,16 +569,20 @@ vec3 get_content(vec2 vTex, vec2 uv)
 
     color *= ((param.VIG_TOGGLE > 0.5) ? vignette(vTex) : 1.0);
 
-//    vec2 mask_coords = mix(vTexCoord, uv, global.h_curvature) * mask_size;
-    vec2 mask_coords = mix(vTex, uv, global.h_curvature) * mask_size;
+    color  = GAMMA_OUT(color);
 
-    mask_coords = mix(mask_coords.xy, mask_coords.yx,  param.VSCANLINES);
-    vec3 mask_wgts = mask_weights(mask_coords, param.PHOSPHOR_LAYOUT);
-    mask_wgts = clamp(mask_wgts + vec3(1.0-param.MASK_INTENSITY), 0.0, 1.0);
-    mask_wgts = (param.MONITOR_SUBPIXELS > 0.5) ? mask_wgts.bgr : mask_wgts;
+    if (param.PHOSPHOR_LAYOUT > 0.5)
+    {
+        vec2 mask_coords = mix(vTex, uv, global.h_curvature) * mask_size;
+        mask_coords = mix(mask_coords.xy, mask_coords.yx,  param.VSCANLINES);
+        vec3 mask = mask_weights(mask_coords, param.PHOSPHOR_LAYOUT);
+        mask = (param.MONITOR_SUBPIXELS > 0.5) ? mask.bgr : mask;
+        color = mask + (1.0 - 2.0*mask)*pow(abs(mask - color), mask*param.MASK_STRENGTH*(param.MaskGamma - 1.0) + 1.0.xxx); 
+    }
+    
+    color  = clamp(color, 0.0, 1.0);
 
-//    FragColor = vec4(color, 1.0);
-    return GAMMA_OUT(color) * GAMMA_OUT(mask_wgts);
+    return color;
 }
 
 
