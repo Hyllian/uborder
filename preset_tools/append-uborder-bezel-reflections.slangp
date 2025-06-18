@@ -2,7 +2,7 @@
 
 shaders = "1"
 
-shader0 = "shaders/uborder-bezel-reflections.slang"
+shader0 = "../shaders/uborder-bezel-reflections.slang"
 filter_linear0 = "true"
 wrap_mode0 = "clamp_to_border"
 mipmap_input0 = "false"
@@ -15,12 +15,12 @@ scale_type_y0 = "viewport"
 scale_y0 = "1.000000"
 
 textures = "BORDER;LAYER2"
-BORDER = "textures/borders/default.jpg"
+BORDER = "../textures/borders/default.jpg"
 BORDER_linear = "true"
 BORDER_wrap_mode = "clamp_to_border"
 BORDER_mipmap = "false"
 
-LAYER2 = "textures/borders/default_layer2.png"
+LAYER2 = "../textures/borders/default_layer2.png"
 LAYER2_linear = "true"
 LAYER2_wrap_mode = "clamp_to_border"
 LAYER2_mipmap = "false"
