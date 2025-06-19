@@ -34,21 +34,28 @@ vec2  float_scale       = OutputRotSize.x * global.fr_zoom * all_zoom / (OutputR
 vec2 overscan         = 100.0/(get_rotated_size(vec2(global.h_overscan_x, global.h_overscan_y), ub_Rotation));
 vec2 content_position = 2.0*get_rotated_vector(vec2(global.h_angle_x, global.h_angle_y), ub_Rotation);
 
-float r2           = global.h_radius * global.h_radius;
-vec2  max_size     = vec2(sqrt( (r2 - 2.0) / (r2 - 1.0) ), 1.0);
-vec2  aspect       = vec2(1.0, OutputRotSize.y/OutputRotSize.x);
-float cornersize   = global.h_cornersize * min(aspect.x, aspect.y);
-float cornersmooth = global.h_cornersmooth/100.0;
-vec2  tilt         = global.h_radius*sin(get_rotated_vector(vec2(global.h_x_tilt, global.h_y_tilt), ub_Rotation));
-
+//vec2  aspect       = vec2(1.0, OutputRotSize.y/OutputRotSize.x);
 
 #ifdef KEEP_BORDER_ASPECT_RATIO
-    float b_aux = ASPECT_TEX_Y/(aspect.y*ASPECT_TEX_X);
+//    float b_aux = ASPECT_TEX_Y/(aspect.y*ASPECT_TEX_X);
+    float b_aux = ASPECT_TEX_Y/((OutputRotSize.y/OutputRotSize.x)*ASPECT_TEX_X);
     float border_to_output = max(b_aux, 1.0/b_aux);
     vec2 fr_scale = border_to_output*get_rotated_size(mix(float_scale, 1.0/int_scale, global.fr_i_scaling), ub_Rotation);
 #else
     vec2 fr_scale = get_rotated_size(mix(float_scale, 1.0/int_scale, global.fr_i_scaling), ub_Rotation);
 #endif
+
+float r2           = global.h_radius * global.h_radius;
+vec2  max_size     = vec2(sqrt( (r2 - 2.0) / (r2 - 1.0) ), 1.0);
+//vec2  c_aspect     = vec2(1.0, OutputRotSize.y/OutputRotSize.x);
+//float cornersize   = global.h_cornersize * min(aspect.x, aspect.y);
+//vec2  c_aspect     = vec2(1.0, (fr_scale.y*OutputRotSize.y)/(OutputRotSize.x*fr_scale.x));
+//vec2  c_aspect     = min((fr_scale.y*OutputRotSize.y),(OutputRotSize.x*fr_scale.x)).xx;
+vec2  aspect       = min(1.0, (OutputRotSize.x*fr_scale.x)/(fr_scale.y*OutputRotSize.y)).xx;
+float cornersize   = global.h_cornersize * min(aspect.x, aspect.y);
+
+float cornersmooth = global.h_cornersmooth/100.0;
+vec2  tilt         = global.h_radius*sin(get_rotated_vector(vec2(global.h_x_tilt, global.h_y_tilt), ub_Rotation));
 
 const vec2  middle = 0.5.xx;
 
