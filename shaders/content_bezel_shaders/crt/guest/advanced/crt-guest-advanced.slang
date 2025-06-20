@@ -334,7 +334,7 @@ void main()
    
 // Bezels and border begins...
 
-    vec2 uvFC = mix(uv, h_warp(uv), global.h_curvature); // Frame content area
+    vec2 uvFC = mix(uv, h_warp(uv, r2, tilt), global.h_curvature); // Frame content area
     uvFC = uvFC*overscan - 2.0*vec2(global.h_angle_x, global.h_angle_y);
 
 // Bezels pause...
