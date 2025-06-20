@@ -43,6 +43,7 @@
     float bz_outer_bezel_y;
     float bz_outer_curve;
     float bz_curve_radius;
+    float bz_in_curve_radius;
     float bz_ref_dist;
     float bz_radius;
     float bz_center_x;

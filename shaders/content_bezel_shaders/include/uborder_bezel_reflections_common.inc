@@ -46,10 +46,8 @@ vec2 content_position = 2.0*get_rotated_vector(vec2(global.h_angle_x, global.h_a
 #endif
 
 float r2           = global.h_radius * global.h_radius;
-vec2  max_size     = vec2(sqrt( (r2 - 2.0) / (r2 - 1.0) ), 1.0);
 //vec2  c_aspect     = vec2(1.0, OutputRotSize.y/OutputRotSize.x);
 //float cornersize   = global.h_cornersize * min(aspect.x, aspect.y);
-//vec2  c_aspect     = vec2(1.0, (fr_scale.y*OutputRotSize.y)/(OutputRotSize.x*fr_scale.x));
 //vec2  c_aspect     = min((fr_scale.y*OutputRotSize.y),(OutputRotSize.x*fr_scale.x)).xx;
 vec2  aspect       = min(1.0, (OutputRotSize.x*fr_scale.x)/(fr_scale.y*OutputRotSize.y)).xx;
 float cornersize   = global.h_cornersize * min(aspect.x, aspect.y);
@@ -69,27 +67,6 @@ vec2 fsmoothstep(vec2 a, vec2 b, vec2 x) {
     return clamp(x*(1.0/(b - a)) - (a/(b - a)), 0.0, 1.0);
 //    return smoothstep(a, b, x);
 }
-
-float h_corner(vec2 uv)
-{
-    vec2  d          = abs((2.0*uv - 1.0) * aspect) - (aspect - cornersize.xx);
-    float borderline = length(max(d, 0.0.xx)) + min(max(d.x, d.y), 0.0) - cornersize;
-
-    return fsmoothstep(cornersmooth, -cornersmooth, borderline);
-}
-
-vec2 h_warp(vec2 uv)
-{
-    vec2 uvt = uv + tilt;
-
-    vec2 cylinder = sqrt( (r2 - uvt.x*uvt.x) / (r2 - 2.0*uvt.x*uvt.x) )*max_size;
-    float sphere   =  sqrt( (r2 - 1.0) / ( r2 - dot(uvt, uvt) ) );
-
-    uv *= mix(sphere.xx, cylinder, global.h_shape);
-
-    return uv;
-}
-
 
 
 /*
@@ -117,7 +94,10 @@ vec4 h_warp(vec4 uv)
 
 float bz_curv_rad  = clamp(global.h_radius + global.bz_curve_radius, 1.8, 10.0);
 float rz           = bz_curv_rad * bz_curv_rad;
-vec2  max_size_z   = vec2(sqrt( (rz - 2.0) / (rz - 1.0) ), 1.0);
+//vec2  max_size_z   = vec2(sqrt( (rz - 2.0) / (rz - 1.0) ), 1.0);
+
+float bz_in_curv_rad  = clamp(global.h_radius + global.bz_in_curve_radius, 1.8, 10.0);
+float rz_in           = bz_in_curv_rad * bz_in_curv_rad;
 
 vec2  bz_center   = get_rotated_vector(vec2(global.bz_center_x, global.bz_center_y)/100.0, ub_Rotation);
 
@@ -140,7 +120,7 @@ float mb_aspect = (MID_BZ.y-INN_BZ.y)/(MID_BZ.x-INN_BZ.x);
 
 vec2  border_pos = vec2(global.border_center_x,global.border_center_y);
 
-
+/*
 vec2 bz_warp(vec2 uv)
 {
     
@@ -151,7 +131,7 @@ vec2 bz_warp(vec2 uv)
     uv *= mix(sphere.xx, cylinder, global.h_shape);
 
     return uv;
-}
+}*/
 
 float rand(vec2 co){
     return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
@@ -197,3 +177,25 @@ vec2 ReflectionCoords(vec2 uv, float r)
 }
 
 #endif
+
+
+float h_corner(vec2 uv)
+{
+    vec2  d          = abs((2.0*uv - 1.0) * aspect) - (aspect - cornersize.xx);
+    float borderline = length(max(d, 0.0.xx)) + min(max(d.x, d.y), 0.0) - cornersize;
+
+    return fsmoothstep(cornersmooth, -cornersmooth, borderline);
+}
+
+vec2 h_warp(vec2 uv, float r, vec2 tilt)
+{
+    vec2 uvt = uv + tilt;
+    vec2 max_size = vec2(sqrt( (r - 2.0) / (r - 1.0) ), 1.0);
+
+    vec2 cylinder = sqrt( (r - uvt.x*uvt.x) / (r - 2.0*uvt.x*uvt.x) )*max_size;
+    float sphere  = sqrt( (r - 1.0)         / (r - dot(uvt, uvt)  ) );
+
+    uv *= mix(sphere.xx, cylinder, global.h_shape);
+
+    return uv;
+}
