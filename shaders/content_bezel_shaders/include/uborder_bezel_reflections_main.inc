@@ -2,10 +2,10 @@ void main()
 {
 // Bezels and border begins...
 
-    vec2 uvFC = mix(uv, h_warp(uv, r2, tilt), global.h_curvature); // Frame content area
-    vec2 uvIB = h_warp(uvFC, rz_in, 0.0.xx);                                    // Inner bezel area
-    vec2 uvMB = mix(bezel_uv, h_warp(bezel_uv, rz, 0.0.xx), global.bz_outer_curve);    // In Between bezel area
-    vec2 uvOB = bezel_uv;                                    // Outer bezel area
+    vec2 uvFC = mix(uv, h_warp(uv, r2, tilt), global.h_curvature);                  // Frame content area
+    vec2 uvIB = h_warp(uv, rz_in, 0.0.xx);                                          // Inner bezel area
+    vec2 uvMB = mix(bezel_uv, h_warp(bezel_uv, rz, 0.0.xx), global.bz_outer_curve); // In Between bezel area
+    vec2 uvOB = bezel_uv;                                                           // Outer bezel area
 
     uvFC = uvFC*overscan - content_position;
 
