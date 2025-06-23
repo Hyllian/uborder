@@ -96,8 +96,8 @@ layout(std140, set = 0, binding = 0) uniform UBO
 #define resolution (params.OutputSize.xy*fr_scale)
 
 //#define gl_FragCoord (vTexCoord.xy * params.OutputSize.xy)
-#define gl_FragCoord (mix(vTex.xy, uv2.xy, global.h_curvature) * resolution)
-
+//#define gl_FragCoord (mix(vTex.xy, uv2.xy, global.h_curvature) * resolution)
+#define gl_FragCoord (uv2.xy * resolution * 0.5)
 
 #define backbuffer accum1
 #define blurbuffer blur2
