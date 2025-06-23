@@ -573,7 +573,8 @@ vec3 get_content(vec2 vTex, vec2 uv)
 
     if (param.PHOSPHOR_LAYOUT > 0.5)
     {
-        vec2 mask_coords = mix(vTex, uv, global.h_curvature) * mask_size;
+        //vec2 mask_coords = mix(vTex, uv, global.h_curvature) * mask_size;
+	vec2 mask_coords = uv * ub_OutputSize.xy* fr_scale * 0.5;
         mask_coords = mix(mask_coords.xy, mask_coords.yx,  param.VSCANLINES);
         vec3 mask = mask_weights(mask_coords, param.PHOSPHOR_LAYOUT);
         mask = (param.MONITOR_SUBPIXELS > 0.5) ? mask.bgr : mask;
