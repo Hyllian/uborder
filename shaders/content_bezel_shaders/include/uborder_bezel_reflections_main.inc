@@ -79,7 +79,7 @@ void main()
     vec3 bezels = 0.0.xxx;
 
     // Inner Bezel Reflection Coords
-    vec2 uvR = ReflectionCoords(uvFC, bz_ref_dist);
+    vec2 uvR = ReflectionCoords(uvIB, bz_ref_dist);
 
     vec3 Blur = 0.0.xxx;
 
