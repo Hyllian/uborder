@@ -1,4 +1,4 @@
-**uborder shaders - Hyllian 2025**
+**uborder shaders - Hyllian 2024-2025 - v0.3.5b**
 
 *How to install and use:*
 
@@ -6,5 +6,4 @@
   - On Retroarch, choose 'FULL' aspect ratio;
   - Choose your preset and enjoy.
 
-Refer to https://forums.libretro.com/t/uborder-shaders/46494/23 to get info about installing extra packs.
-
+Refer to https://forums.libretro.com/t/uborder-shaders/46494/23 to get info about installing latest version and extra packs.
